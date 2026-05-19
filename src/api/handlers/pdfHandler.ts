@@ -1,18 +1,33 @@
 import { calculateEstimation } from "@/calculation-engine";
 import { validateCalculationReadiness } from "@/ai-engine/validators";
-import { readState } from "@/database/jsonStore";
+import { loadProjectState } from "@/server/projectStore";
 import { generatePdfReport } from "@/services/pdfService";
-import { badRequest, type ApiHandler } from "@/api/http";
+import { badRequest, type ProtectedApiHandler } from "@/api/http";
 import { hasStrictStateShape, sanitizeState } from "@/utils/state";
+import { enforceMonthlyUsage, logUsage } from "@/server/rateLimit";
+import { stateRequestSchema } from "@/server/schemas";
 
-export const pdfHandler: ApiHandler = async (req, res) => {
-  let state = await readState();
-  if (req.body?.state !== undefined) {
-    if (!hasStrictStateShape(req.body.state)) {
+export const pdfHandler: ProtectedApiHandler = async (req, res, user) => {
+  const limit = await enforceMonthlyUsage(user, "pdf");
+  if (!limit.allowed) {
+    res.status(402).json({ ok: false, error: limit.message });
+    return;
+  }
+
+  const parsed = stateRequestSchema.safeParse(req.body ?? {});
+  if (!parsed.success) {
+    badRequest(res, parsed.error.issues[0]?.message ?? "Invalid PDF request.");
+    return;
+  }
+
+  const { projectId, state: inputState } = parsed.data;
+  let { state } = await loadProjectState(user, projectId);
+  if (inputState !== undefined) {
+    if (!hasStrictStateShape(inputState)) {
       badRequest(res, "State must match the strict EstiBot state schema with no root-level extra keys.");
       return;
     }
-    state = sanitizeState(req.body.state);
+    state = sanitizeState(inputState);
   }
 
   const readiness = validateCalculationReadiness(state);
@@ -32,8 +47,9 @@ export const pdfHandler: ApiHandler = async (req, res) => {
 
   try {
     const calculations = calculateEstimation(state);
-    const pdf = generatePdfReport(state, calculations);
+    const pdf = generatePdfReport(state, calculations, { tenantName: user.tenantName });
     const fileName = `${(state.project.name ?? "estibot-report").replace(/[^a-z0-9]+/gi, "-").toLowerCase()}-estimation.pdf`;
+    await logUsage(user, "pdf");
 
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);

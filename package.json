@@ -5,22 +5,31 @@
   "description": "State-driven AI software project estimation platform using Function Point Analysis and Use Case Point Analysis.",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "postinstall": "prisma generate",
+    "db:push": "prisma generate && node scripts/init-db.js",
+    "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint src tailwind.config.ts --ext .ts,.tsx --max-warnings=0",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@prisma/client": "^5.22.0",
+    "bcryptjs": "^3.0.3",
     "clsx": "2.1.1",
+    "cookie": "^1.1.1",
+    "jsonwebtoken": "^9.0.3",
     "jspdf": "4.2.1",
     "jspdf-autotable": "5.0.8",
     "lucide-react": "0.468.0",
     "next": "15.5.18",
     "react": "19.0.0",
     "react-dom": "19.0.0",
-    "recharts": "2.15.0"
+    "recharts": "2.15.0",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@types/cookie": "^0.6.0",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "22.10.2",
     "@types/react": "19.0.2",
     "@types/react-dom": "19.0.2",
@@ -28,6 +37,7 @@
     "eslint": "8.57.1",
     "eslint-config-next": "15.5.18",
     "postcss": "8.5.10",
+    "prisma": "^5.22.0",
     "tailwindcss": "3.4.17",
     "typescript": "5.7.2"
   },

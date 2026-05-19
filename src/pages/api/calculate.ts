@@ -1,4 +1,4 @@
-import { withPost } from "@/api/http";
+import { withProtectedPost } from "@/api/http";
 import { calculateHandler } from "@/api/handlers/calculateHandler";
 
-export default withPost(calculateHandler);
+export default withProtectedPost(calculateHandler);

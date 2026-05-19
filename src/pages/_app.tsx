@@ -1,11 +1,11 @@
 import type { AppProps } from "next/app";
-import { EstimationProvider } from "@/state/EstimationContext";
+import { AuthProvider } from "@/state/AuthContext";
 import "@/styles/globals.css";
 
 export default function App({ Component, pageProps }: AppProps) {
   return (
-    <EstimationProvider>
+    <AuthProvider>
       <Component {...pageProps} />
-    </EstimationProvider>
+    </AuthProvider>
   );
 }

@@ -1,4 +1,4 @@
-import { withPost } from "@/api/http";
+import { withProtectedPost } from "@/api/http";
 import { chatHandler } from "@/api/handlers/chatHandler";
 
-export default withPost(chatHandler);
+export default withProtectedPost(chatHandler);

@@ -1,4 +1,5 @@
 import type { ApiResponse, CalculationResult, ChatReply, EstimationState } from "@/types/estimation";
+import type { SessionUser } from "@/server/auth";
 
 export interface StatePayload {
   state: EstimationState;
@@ -10,6 +11,20 @@ export type ChatPayload = StatePayload;
 export interface CalculationPayload {
   state: EstimationState;
   calculations: CalculationResult;
+}
+
+export interface AuthPayload {
+  user: SessionUser;
+}
+
+export interface ProjectSummary {
+  id: string;
+  name: string;
+  description: string;
+  method: string;
+  hourlyRate: number;
+  updatedAt: string;
+  latestEstimationAt: string | null;
 }
 
 async function wait(ms: number): Promise<void> {
@@ -38,6 +53,43 @@ async function postJson<T>(url: string, body: unknown, retries = 2): Promise<T> 
     }
   }
   throw lastError instanceof Error ? lastError : new Error("Network request failed.");
+}
+
+async function getJson<T>(url: string): Promise<T> {
+  const response = await fetch(url);
+  const payload = (await response.json()) as ApiResponse<T>;
+  if (!response.ok || !payload.ok || payload.data === undefined) {
+    throw new Error(payload.error ?? `Request failed with status ${response.status}`);
+  }
+  return payload.data;
+}
+
+export function getCurrentUser(): Promise<AuthPayload> {
+  return getJson<AuthPayload>("/api/auth/me");
+}
+
+export function login(email: string, password: string): Promise<AuthPayload> {
+  return postJson<AuthPayload>("/api/auth/login", { email, password }, 0);
+}
+
+export function register(email: string, password: string, organizationName?: string): Promise<AuthPayload> {
+  return postJson<AuthPayload>("/api/auth/register", { email, password, organizationName }, 0);
+}
+
+export function logout(): Promise<{ loggedOut: boolean }> {
+  return postJson<{ loggedOut: boolean }>("/api/auth/logout", {}, 0);
+}
+
+export function fetchProjects(): Promise<{ projects: ProjectSummary[] }> {
+  return getJson<{ projects: ProjectSummary[] }>("/api/projects");
+}
+
+export function createProject(input: { name: string; description: string; method: "FP" | "UCP" | "BOTH"; hourlyRate: number }): Promise<{ project: ProjectSummary }> {
+  return postJson<{ project: ProjectSummary }>("/api/projects", input, 0);
+}
+
+export function fetchAdminMetrics(): Promise<Record<string, number | string>> {
+  return getJson<Record<string, number | string>>("/api/admin/metrics");
 }
 
 export function fetchState(): Promise<StatePayload> {

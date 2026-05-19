@@ -3,6 +3,9 @@ import autoTable from "jspdf-autotable";
 import type { CalculationResult, EstimationState, FunctionPointResult, UseCasePointResult, WeightedRow } from "@/types/estimation";
 
 type PdfWithAutoTable = jsPDF & { lastAutoTable?: { finalY: number } };
+interface PdfOptions {
+  tenantName?: string;
+}
 
 function currency(value: number): string {
   return `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -15,12 +18,12 @@ function metric(value: number): string {
 function addTitle(doc: jsPDF, title: string, subtitle?: string): void {
   doc.setFont("helvetica", "bold");
   doc.setFontSize(18);
-  doc.setTextColor(23, 32, 51);
+  doc.setTextColor(9, 60, 93);
   doc.text(title, 42, 56);
   if (subtitle) {
     doc.setFont("helvetica", "normal");
     doc.setFontSize(10);
-    doc.setTextColor(92, 103, 122);
+    doc.setTextColor(59, 117, 151);
     doc.text(subtitle, 42, 74);
   }
 }
@@ -32,7 +35,7 @@ function table(doc: PdfWithAutoTable, y: number, head: string[][], body: Array<A
     body,
     theme: "grid",
     headStyles: {
-      fillColor: [23, 32, 51],
+      fillColor: [9, 60, 93],
       textColor: [255, 255, 255],
       fontStyle: "bold"
     },
@@ -40,11 +43,11 @@ function table(doc: PdfWithAutoTable, y: number, head: string[][], body: Array<A
       font: "helvetica",
       fontSize: 9,
       cellPadding: 6,
-      lineColor: [217, 224, 234],
+      lineColor: [185, 233, 238],
       lineWidth: 0.6
     },
     alternateRowStyles: {
-      fillColor: [246, 248, 251]
+      fillColor: [239, 251, 252]
     },
     margin: { left: 42, right: 42 }
   });
@@ -61,27 +64,28 @@ function rowsForWeighted(values: WeightedRow[]): Array<Array<string | number>> {
   ]);
 }
 
-function addCover(doc: jsPDF, state: EstimationState, calculations: CalculationResult): void {
-  doc.setFillColor(23, 32, 51);
+function addCover(doc: jsPDF, state: EstimationState, calculations: CalculationResult, options?: PdfOptions): void {
+  doc.setFillColor(9, 60, 93);
   doc.rect(0, 0, 595, 842, "F");
-  doc.setFillColor(16, 185, 129);
+  doc.setFillColor(93, 248, 216);
   doc.rect(0, 0, 595, 12, "F");
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(28);
-  doc.text("EstiBot AI Enterprise", 52, 118);
+  doc.text("EstiBot AI SaaS", 52, 118);
   doc.setFontSize(20);
   doc.text("Software Project Estimation Report", 52, 154);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(12);
-  doc.text(`Project: ${state.project.name ?? "Unnamed project"}`, 52, 218);
-  doc.text(`Method: ${calculations.method}`, 52, 240);
-  doc.text(`Generated: ${new Date(calculations.generatedAt).toLocaleString()}`, 52, 262);
-  doc.setDrawColor(16, 185, 129);
+  doc.text(`Tenant: ${options?.tenantName ?? "Workspace"}`, 52, 218);
+  doc.text(`Project: ${state.project.name ?? "Unnamed project"}`, 52, 240);
+  doc.text(`Method: ${calculations.method}`, 52, 262);
+  doc.text(`Generated: ${new Date(calculations.generatedAt).toLocaleString()}`, 52, 284);
+  doc.setDrawColor(93, 248, 216);
   doc.setLineWidth(2);
   doc.line(52, 292, 420, 292);
   doc.setFontSize(10);
-  doc.setTextColor(210, 218, 230);
+  doc.setTextColor(215, 244, 246);
   doc.text("Deterministic state-machine output. Missing data is never inferred.", 52, 326);
 }
 
@@ -99,7 +103,7 @@ function addOverview(doc: PdfWithAutoTable, state: EstimationState, calculations
     ["Confidence basis", calculations.confidence.basis]
   ]);
   doc.setFontSize(10);
-  doc.setTextColor(92, 103, 122);
+  doc.setTextColor(59, 117, 151);
   doc.text("State schema root: phase, project, fp, ucp, technical, environmental, missingFields, isComplete.", 42, y + 8);
 }
 
@@ -163,17 +167,17 @@ function addComparison(doc: PdfWithAutoTable, calculations: CalculationResult): 
   const y = 128;
 
   doc.setFontSize(10);
-  doc.setTextColor(23, 32, 51);
+  doc.setTextColor(9, 60, 93);
   doc.text("Effort Comparison Chart", startX, 104);
   if (calculations.fp) {
     doc.text("FP", startX, y);
-    doc.setFillColor(37, 99, 235);
+    doc.setFillColor(59, 117, 151);
     doc.rect(startX + 56, y - 10, barWidth * (fpEffort / maxEffort), 14, "F");
     doc.text(`${metric(fpEffort)} h`, startX + 424, y);
   }
   if (calculations.ucp) {
     doc.text("UCP", startX, y + 34);
-    doc.setFillColor(16, 185, 129);
+    doc.setFillColor(93, 248, 216);
     doc.rect(startX + 56, y + 24, barWidth * (ucpEffort / maxEffort), 14, "F");
     doc.text(`${metric(ucpEffort)} h`, startX + 424, y + 34);
   }
@@ -199,13 +203,13 @@ function addFooters(doc: jsPDF): void {
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8);
     doc.setTextColor(110, 119, 135);
-    doc.text(`EstiBot AI Enterprise | Page ${page} of ${pageCount}`, 42, 820);
+    doc.text(`EstiBot AI SaaS | Page ${page} of ${pageCount}`, 42, 820);
   }
 }
 
-export function generatePdfReport(state: EstimationState, calculations: CalculationResult): Buffer {
+export function generatePdfReport(state: EstimationState, calculations: CalculationResult, options?: PdfOptions): Buffer {
   const doc = new jsPDF({ orientation: "portrait", unit: "pt", format: "a4" }) as PdfWithAutoTable;
-  addCover(doc, state, calculations);
+  addCover(doc, state, calculations, options);
   addOverview(doc, state, calculations);
   addFpSection(doc, calculations.fp);
   addUcpSection(doc, calculations.ucp);

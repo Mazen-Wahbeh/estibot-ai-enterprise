@@ -3,12 +3,16 @@ services:
     name: estibot-ai-enterprise
     runtime: node
     plan: free
-    buildCommand: npm install && npm run build
+    buildCommand: npm install && npm run db:push && npm run build
     startCommand: npm run start
     autoDeploy: true
     envVars:
       - key: NODE_VERSION
         value: 22
+      - key: DATABASE_URL
+        value: file:./prisma/render.db
+      - key: JWT_SECRET
+        sync: false
       - key: GROQ_API_KEY
         sync: false
       - key: GROQ_MODEL

@@ -1,0 +1,88 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Tenant {
+  id            String         @id @default(cuid())
+  name          String
+  plan          String         @default("FREE")
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  users         User[]
+  projects      Project[]
+  subscriptions Subscription[]
+}
+
+model User {
+  id           String      @id @default(cuid())
+  email        String      @unique
+  passwordHash String
+  role         String      @default("USER")
+  tenantId     String
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  tenant       Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  projects     Project[]
+  usageLogs    UsageLog[]
+}
+
+model Project {
+  id          String       @id @default(cuid())
+  tenantId    String
+  ownerId     String
+  name        String
+  description String
+  method      String
+  hourlyRate  Float
+  stateJson   String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  tenant      Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  owner       User         @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  estimations Estimation[]
+
+  @@index([tenantId])
+  @@index([ownerId])
+}
+
+model Estimation {
+  id        String   @id @default(cuid())
+  projectId String
+  fpData    String
+  ucpData   String
+  results   String
+  createdAt DateTime @default(now())
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+}
+
+model UsageLog {
+  id        String   @id @default(cuid())
+  userId    String
+  tenantId  String
+  action    String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([tenantId, createdAt])
+}
+
+model Subscription {
+  id        String   @id @default(cuid())
+  tenantId  String
+  plan      String   @default("FREE")
+  status    String   @default("ACTIVE")
+  limits    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+}

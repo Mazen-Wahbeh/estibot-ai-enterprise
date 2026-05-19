@@ -1,7 +1,8 @@
 import { getCurrentPrompt } from "@/ai-engine/stateMachine";
-import { readState, writeState } from "@/database/jsonStore";
+import { loadProjectState, saveProjectState } from "@/server/projectStore";
 import type { ApiResponse, ChatReply, EstimationState } from "@/types/estimation";
-import { badRequest, type ApiHandler } from "@/api/http";
+import { badRequest, type ProtectedApiHandler } from "@/api/http";
+import { stateRequestSchema } from "@/server/schemas";
 import { hasStrictStateShape, sanitizeState } from "@/utils/state";
 
 interface StatePayload {
@@ -9,13 +10,21 @@ interface StatePayload {
   reply: ChatReply;
 }
 
-export const stateHandler: ApiHandler = async (req, res) => {
-  if (req.body?.state !== undefined) {
-    if (!hasStrictStateShape(req.body.state)) {
+export const stateHandler: ProtectedApiHandler = async (req, res, user) => {
+  const parsed = stateRequestSchema.safeParse(req.body ?? {});
+  if (!parsed.success) {
+    badRequest(res, parsed.error.issues[0]?.message ?? "Invalid state request.");
+    return;
+  }
+
+  const { projectId, state: inputState } = parsed.data;
+
+  if (inputState !== undefined) {
+    if (!hasStrictStateShape(inputState)) {
       badRequest(res, "State must match the strict EstiBot state schema with no root-level extra keys.");
       return;
     }
-    const state = await writeState(sanitizeState(req.body.state));
+    const { state } = await saveProjectState(user, sanitizeState(inputState), projectId);
     res.status(200).json({
       ok: true,
       data: {
@@ -26,7 +35,7 @@ export const stateHandler: ApiHandler = async (req, res) => {
     return;
   }
 
-  const state = await readState();
+  const { state } = await loadProjectState(user, projectId);
   res.status(200).json({
     ok: true,
     data: {

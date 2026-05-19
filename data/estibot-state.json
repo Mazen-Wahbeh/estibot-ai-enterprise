@@ -1,95 +1,12 @@
 {
-  "phase": "RESULT_GENERATION",
-  "project": {
-    "name": "Smart Clinic Management System\ntext",
-    "description": "A web-based clinic management system for patient registration, appointment booking, doctor schedules, medical records, billing, reports, role-based access, SMS notifications, and payment integration.\ntext",
-    "hourlyRate": 50,
-    "method": "BOTH"
-  },
-  "fp": {
-    "externalInputs": {
-      "simple": 6,
-      "average": 8,
-      "complex": 4
-    },
-    "externalOutputs": {
-      "simple": 4,
-      "average": 6,
-      "complex": 3
-    },
-    "externalInquiries": {
-      "simple": 5,
-      "average": 4,
-      "complex": 2
-    },
-    "internalLogicalFiles": {
-      "simple": 3,
-      "average": 5,
-      "complex": 2
-    },
-    "externalInterfaceFiles": {
-      "simple": 2,
-      "average": 3,
-      "complex": 1
-    }
-  },
-  "ucp": {
-    "actors": {
-      "simple": 2,
-      "average": 3,
-      "complex": 1
-    },
-    "useCases": {
-      "simple": 2,
-      "average": 3,
-      "complex": 1
-    }
-  },
-  "technical": {
-    "fpGsc": {
-      "dataCommunications": 4,
-      "distributedProcessing": 3,
-      "performance": 4,
-      "heavilyUsedConfiguration": 3,
-      "transactionRate": 4,
-      "onlineDataEntry": 3,
-      "endUserEfficiency": 2,
-      "onlineUpdate": 2,
-      "complexProcessing": 3,
-      "reusability": 4,
-      "installationEase": 4,
-      "operationalEase": 2,
-      "multipleSites": 2,
-      "facilitateChange": 4
-    },
-    "ucpTechnical": {
-      "distributedSystem": 5,
-      "performanceObjectives": 1,
-      "endUserEfficiency": 5,
-      "complexProcessing": 5,
-      "reusableCode": 5,
-      "easyInstall": 5,
-      "easyUse": 5,
-      "portable": 1,
-      "easyChange": 1,
-      "concurrent": 1,
-      "security": 1,
-      "thirdPartyAccess": 1,
-      "trainingNeeds": 1
-    }
-  },
-  "environmental": {
-    "ucpEnvironmental": {
-      "familiarProcess": 4,
-      "applicationExperience": 4,
-      "objectOrientedExperience": 4,
-      "leadAnalystCapability": 4,
-      "motivation": 3,
-      "stableRequirements": 3,
-      "partTimeWorkers": 2,
-      "difficultLanguage": 5
-    }
-  },
-  "missingFields": [],
-  "isComplete": true
+  "phase": "PROJECT_INTRODUCTION",
+  "project": {},
+  "fp": {},
+  "ucp": {},
+  "technical": {},
+  "environmental": {},
+  "missingFields": [
+    "project.name"
+  ],
+  "isComplete": false
 }

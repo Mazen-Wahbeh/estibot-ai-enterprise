@@ -1,6 +1,6 @@
-# EstiBot AI Enterprise
+# EstiBot AI SaaS
 
-AI-powered software project estimation platform with a deterministic state machine, Function Point Analysis, Use Case Point Analysis, analytics dashboards, JSON persistence, REST APIs, and PDF reporting.
+Commercial multi-tenant SaaS platform for AI-powered software project estimation with deterministic state-machine intake, Function Point Analysis, Use Case Point Analysis, tenant-isolated persistence, usage limits, dashboards, REST APIs, and PDF reporting.
 
 لشرح عربي شامل عن فكرة المشروع، طريقة عرضه على شركة، المدخلات والمخرجات، والمعمارية التقنية، راجع:
 
@@ -13,7 +13,9 @@ PROJECT_EXPLANATION_AR.md
 - Next.js Pages Router with React and TypeScript
 - Tailwind CSS enterprise UI
 - Next.js API routes for REST backend
-- JSON file persistence in `data/estibot-state.json`
+- Prisma ORM with SQLite development persistence
+- JWT cookie authentication with bcrypt password hashing
+- Tenant-scoped projects, estimations, usage logs, and subscriptions
 - Recharts analytics
 - jsPDF and jspdf-autotable report generation
 
@@ -21,6 +23,7 @@ PROJECT_EXPLANATION_AR.md
 
 ```bash
 npm install
+npm run db:push
 npm run dev
 ```
 
@@ -34,6 +37,13 @@ copy .env.example .env.local
 
 Set `GROQ_API_KEY` in `.env.local`. The default model is `llama-3.1-8b-instant`; override it with `GROQ_MODEL` if needed. If the key is missing, invalid, rate-limited, or Groq is disabled with `GROQ_ENABLED=false`, the system automatically falls back to the local deterministic extractor.
 
+Required SaaS environment values:
+
+```bash
+DATABASE_URL="file:./dev.db"
+JWT_SECRET="change-this-long-random-secret-before-production"
+```
+
 Groq is used in two server-side places:
 
 - Extraction: normalizes free-form answers into the deterministic state-machine format.
@@ -43,6 +53,8 @@ Production build:
 
 ```bash
 npm run typecheck
+npm run lint
+npm run db:push
 npm run build
 npm run start
 ```
@@ -78,13 +90,24 @@ The persisted AI state uses the strict root schema:
 
 ## API Endpoints
 
-All endpoints use `POST`.
+Authentication:
 
-- `/api/chat`: accepts `{ "message": "..." }`, processes one deterministic state-machine turn.
-- `/api/state`: accepts `{}` to read state or `{ "state": ... }` to persist a strict state object.
-- `/api/calculate`: accepts `{ "state": ... }`, validates and returns FP/UCP calculations.
-- `/api/pdf`: accepts `{ "state": ... }`, validates and returns an enterprise PDF.
-- `/api/reset`: resets persisted state to the initial phase.
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `POST /api/auth/logout`
+- `GET /api/auth/me`
+
+Protected tenant-scoped APIs:
+
+- `POST /api/chat`: accepts `{ "message": "...", "projectId": "optional" }`, processes one deterministic state-machine turn.
+- `POST /api/state` and `POST /api/state/load`: read the tenant-scoped project state.
+- `POST /api/state/save`: persist a strict state object for the current tenant project.
+- `POST /api/calculate`: validates usage limits, calculates FP/UCP results, and stores an estimation record.
+- `POST /api/pdf` and `POST /api/pdf/generate`: validates PDF limits and returns a branded PDF.
+- `POST /api/reset`: resets the selected tenant project state.
+- `GET /api/projects`: list tenant projects.
+- `POST /api/projects` and `POST /api/projects/create`: create a tenant project.
+- `GET /api/admin/metrics`: admin-only SaaS metrics.
 
 ## Calculation Formulas
 
@@ -125,6 +148,7 @@ src/
   components/
   pages/
   services/
+  server/
   state/
   utils/
   types/

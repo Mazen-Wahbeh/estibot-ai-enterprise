@@ -27,6 +27,12 @@ export default function LandingPage() {
               EstiBot AI SaaS
             </div>
             <nav className="flex items-center gap-3 text-sm">
+              <Link className="font-medium text-accent-600 hover:text-ink" href="/privacy">
+                Privacy
+              </Link>
+              <Link className="font-medium text-accent-600 hover:text-ink" href="/terms">
+                Terms
+              </Link>
               <Link className="font-medium text-accent-600 hover:text-ink" href="/pricing">
                 Pricing
               </Link>
@@ -84,6 +90,23 @@ export default function LandingPage() {
             );
           })}
         </section>
+
+        <footer className="border-t border-line bg-white">
+          <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-5 py-5 text-sm text-accent-600">
+            <span>EstiBot AI SaaS · Commercial estimation platform</span>
+            <div className="flex flex-wrap gap-4">
+              <Link className="font-medium hover:text-ink" href="/privacy">
+                Privacy
+              </Link>
+              <Link className="font-medium hover:text-ink" href="/terms">
+                Terms
+              </Link>
+              <Link className="font-medium hover:text-ink" href="/login">
+                Platform docs
+              </Link>
+            </div>
+          </div>
+        </footer>
       </main>
     </>
   );

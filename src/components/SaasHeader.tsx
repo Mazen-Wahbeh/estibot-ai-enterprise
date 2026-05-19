@@ -46,6 +46,18 @@ export function SaasHeader() {
           <Link className="font-medium text-accent-600 hover:text-ink" href="/integrations">
             Integrations
           </Link>
+          <Link className="font-medium text-accent-600 hover:text-ink" href="/documentation">
+            Docs
+          </Link>
+          <Link className="font-medium text-accent-600 hover:text-ink" href="/security">
+            Security
+          </Link>
+          <Link className="font-medium text-accent-600 hover:text-ink" href="/status">
+            Status
+          </Link>
+          <Link className="font-medium text-accent-600 hover:text-ink" href="/changelog">
+            Changelog
+          </Link>
           <Link className="font-medium text-accent-600 hover:text-ink" href="/billing">
             Billing
           </Link>

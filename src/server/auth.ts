@@ -30,6 +30,14 @@ function jwtSecret(): string {
   return secret;
 }
 
+export function getAuthConfigurationError(): string | null {
+  const secret = process.env.JWT_SECRET;
+  if (!secret || secret.length < 20) {
+    return "Server auth is not configured. Set JWT_SECRET in Render Environment Variables to a long random value, then redeploy.";
+  }
+  return null;
+}
+
 export async function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, 12);
 }

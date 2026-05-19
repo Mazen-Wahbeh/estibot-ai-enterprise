@@ -1,12 +1,18 @@
 import type { ApiResponse } from "@/types/estimation";
 import { withPost, badRequest } from "@/api/http";
-import { hashPassword, setSessionCookie, type SessionUser } from "@/server/auth";
+import { getAuthConfigurationError, hashPassword, setSessionCookie, type SessionUser } from "@/server/auth";
 import { prisma } from "@/server/prisma";
 import { planLimits } from "@/server/plans";
 import { registerSchema } from "@/server/schemas";
 import { audit } from "@/server/audit";
 
 export default withPost(async (req, res) => {
+  const configError = getAuthConfigurationError();
+  if (configError) {
+    res.status(500).json({ ok: false, error: configError } satisfies ApiResponse<never>);
+    return;
+  }
+
   const parsed = registerSchema.safeParse(req.body);
   if (!parsed.success) {
     badRequest(res, parsed.error.issues[0]?.message ?? "Invalid registration request.");

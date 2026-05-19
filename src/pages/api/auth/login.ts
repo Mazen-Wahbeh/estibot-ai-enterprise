@@ -1,11 +1,17 @@
 import type { ApiResponse } from "@/types/estimation";
 import { withPost, badRequest } from "@/api/http";
-import { setSessionCookie, verifyPassword, type SessionUser } from "@/server/auth";
+import { getAuthConfigurationError, setSessionCookie, verifyPassword, type SessionUser } from "@/server/auth";
 import { prisma } from "@/server/prisma";
 import { loginSchema } from "@/server/schemas";
 import { audit } from "@/server/audit";
 
 export default withPost(async (req, res) => {
+  const configError = getAuthConfigurationError();
+  if (configError) {
+    res.status(500).json({ ok: false, error: configError } satisfies ApiResponse<never>);
+    return;
+  }
+
   const parsed = loginSchema.safeParse(req.body);
   if (!parsed.success) {
     badRequest(res, parsed.error.issues[0]?.message ?? "Invalid login request.");

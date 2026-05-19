@@ -2,9 +2,9 @@ import Head from "next/head";
 import Link from "next/link";
 
 const plans = [
-  ["FREE", "$0", "3 estimations/month", "Limited PDF export", "Basic analytics"],
-  ["PRO", "$29", "Unlimited estimations", "Full PDF export", "FP + UCP + BOTH", "Charts access"],
-  ["ENTERPRISE", "Custom", "Team collaboration", "API access", "Advanced analytics", "Priority processing"]
+  ["FREE", "$0", "3 estimations/month", "Limited PDF export", "Basic portfolio analytics", "FP or UCP estimation"],
+  ["PRO", "$29", "Unlimited estimations", "Full PDF export", "FP + UCP + BOTH", "COCOMO II, COSMIC, profitability, and charts"],
+  ["ENTERPRISE", "Custom", "Team collaboration", "API access", "EVM, benchmarking, capacity planning, and governance", "Priority processing"]
 ];
 
 export default function PricingPage() {
@@ -18,7 +18,7 @@ export default function PricingPage() {
           <div className="flex items-center justify-between gap-4">
             <div>
               <h1 className="text-3xl font-semibold">Pricing</h1>
-              <p className="mt-2 text-accent-600">Billing-ready plans with SaaS gating already reflected in the backend.</p>
+              <p className="mt-2 text-accent-600">Billing-ready plans for estimation teams, sales operations, PMO governance, and enterprise delivery analytics.</p>
             </div>
             <Link href="/" className="rounded-lg border border-line bg-white px-4 py-2 text-sm font-semibold text-accent-600">
               Home

@@ -1,10 +1,11 @@
 import Head from "next/head";
 import Link from "next/link";
-import { BarChart3, Bot, FileText, Lock, Sparkles } from "lucide-react";
+import { BarChart3, Bot, FileText, Lock, Sparkles, Target } from "lucide-react";
 
 const features = [
   { icon: Bot, title: "Deterministic AI intake", text: "One question per turn with strict phase control and resumable project state." },
   { icon: BarChart3, title: "Commercial analytics", text: "Portfolio KPIs, scenario ranges, Monte Carlo confidence, actuals calibration, and sector benchmarks." },
+  { icon: Target, title: "Advanced model suite", text: "COCOMO II, approximate COSMIC, profitability, EVM, capacity planning, and scope volatility on top of FP/UCP." },
   { icon: Lock, title: "Tenant isolation", text: "Every project, usage event, and estimate is scoped to the authenticated organization." },
   { icon: FileText, title: "Proposal-ready outputs", text: "Branded reports, proposal drafts, approval checkpoints, and integration-ready commercial data." }
 ];
@@ -50,7 +51,7 @@ export default function LandingPage() {
           <div>
             <h1 className="max-w-3xl text-4xl font-semibold leading-tight md:text-5xl">Commercial software estimation for teams that need defensible numbers.</h1>
             <p className="mt-5 max-w-2xl text-lg leading-8 text-accent-600">
-              EstiBot AI SaaS turns conversational requirements into FP, UCP, effort, cost, confidence, analytics, and client-ready PDF reports.
+              EstiBot AI SaaS turns conversational requirements into FP, UCP, COCOMO II, COSMIC, effort, cost, confidence, profitability, and client-ready reports.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
               <Link className="rounded-lg bg-brand-500 px-5 py-3 text-sm font-semibold text-ink transition hover:bg-brand-600 hover:text-white" href="/register">
@@ -68,7 +69,7 @@ export default function LandingPage() {
               <span className="rounded-md bg-brand-50 px-2 py-1 text-xs font-semibold text-brand-700">Multi-tenant</span>
             </div>
             <div className="mt-5 grid gap-3">
-              {["Authentication", "Usage limits", "Tenant database", "Billing-ready plans", "Admin metrics", "Actuals calibration", "Approval workflow"].map((item) => (
+              {["Authentication", "Usage limits", "Tenant database", "Billing-ready plans", "Admin metrics", "Actuals calibration", "Advanced analytics", "EVM readiness", "Approval workflow"].map((item) => (
                 <div key={item} className="flex items-center justify-between rounded-md bg-panel px-3 py-2 text-sm">
                   <span>{item}</span>
                   <span className="font-semibold text-accent-600">Ready</span>
@@ -93,7 +94,7 @@ export default function LandingPage() {
 
         <footer className="border-t border-line bg-white">
           <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-5 py-5 text-sm text-accent-600">
-            <span>EstiBot AI SaaS · Commercial estimation platform</span>
+            <span>EstiBot AI SaaS - Commercial estimation platform</span>
             <div className="flex flex-wrap gap-4">
               <Link className="font-medium hover:text-ink" href="/privacy">
                 Privacy
@@ -101,7 +102,7 @@ export default function LandingPage() {
               <Link className="font-medium hover:text-ink" href="/terms">
                 Terms
               </Link>
-              <Link className="font-medium hover:text-ink" href="/login">
+              <Link className="font-medium hover:text-ink" href="/documentation">
                 Platform docs
               </Link>
             </div>

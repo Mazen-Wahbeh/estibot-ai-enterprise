@@ -1,6 +1,6 @@
 export const documentationMeta = {
   productName: "EstiBot AI SaaS",
-  version: "2026.05.19-enterprise-analytics",
+  version: "2026.05.19-advanced-analytics",
   updatedAt: "2026-05-19",
   owner: "EstiBot Product Operations"
 };
@@ -137,7 +137,7 @@ export const launchChecklist = [
   "Rotate any exposed AI provider keys and update Render environment variables.",
   "Set JWT_SECRET to a long random value in production.",
   "Confirm tenant isolation with two test companies before inviting customers.",
-  "Run a sample FP/UCP estimate, generate a proposal, export PDF, create approval, and record actuals.",
+  "Run a sample FP/UCP estimate, review COCOMO/COSMIC and EVM outputs, generate a proposal, export PDF, create approval, and record actuals.",
   "Move production customers to PostgreSQL before storing critical business data.",
   "Define support email, billing contact, privacy policy, and terms of use.",
   "Prepare backup and incident response procedures before paid pilots."

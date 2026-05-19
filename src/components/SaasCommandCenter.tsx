@@ -1,6 +1,15 @@
 import { useEffect, useState } from "react";
-import { Activity, BarChart3, Database, Gauge, Globe2, ReceiptText } from "lucide-react";
-import { fetchPortfolioAnalytics, fetchTenantSettings, fetchUsage, type PortfolioAnalytics, type TenantSettings, type UsagePayload } from "@/services/apiClient";
+import { Activity, AlertTriangle, BarChart3, Database, Gauge, Globe2, ReceiptText, Target, TrendingUp, Users } from "lucide-react";
+import {
+  fetchAdvancedPortfolioAnalytics,
+  fetchPortfolioAnalytics,
+  fetchTenantSettings,
+  fetchUsage,
+  type AdvancedPortfolioAnalytics,
+  type PortfolioAnalytics,
+  type TenantSettings,
+  type UsagePayload
+} from "@/services/apiClient";
 
 function usageLabel(value: number, limit: number | null): string {
   return limit === null ? `${value} / unlimited` : `${value} / ${limit}`;
@@ -10,12 +19,14 @@ export function SaasCommandCenter() {
   const [usage, setUsage] = useState<UsagePayload | null>(null);
   const [settings, setSettings] = useState<TenantSettings | null>(null);
   const [portfolio, setPortfolio] = useState<PortfolioAnalytics | null>(null);
+  const [advanced, setAdvanced] = useState<AdvancedPortfolioAnalytics | null>(null);
 
   useEffect(() => {
-    void Promise.all([fetchUsage(), fetchTenantSettings(), fetchPortfolioAnalytics()]).then(([usagePayload, settingsPayload, analyticsPayload]) => {
+    void Promise.all([fetchUsage(), fetchTenantSettings(), fetchPortfolioAnalytics(), fetchAdvancedPortfolioAnalytics()]).then(([usagePayload, settingsPayload, analyticsPayload, advancedPayload]) => {
       setUsage(usagePayload);
       setSettings(settingsPayload.settings);
       setPortfolio(analyticsPayload.analytics);
+      setAdvanced(advancedPayload.analytics);
     });
   }, []);
 
@@ -49,6 +60,26 @@ export function SaasCommandCenter() {
       label: "Confidence",
       value: portfolio?.benchmarks.portfolioConfidence ?? "Loading",
       icon: Gauge
+    },
+    {
+      label: "Risk score",
+      value: advanced ? `${advanced.totals.averageRiskScore}/100` : "Loading",
+      icon: AlertTriangle
+    },
+    {
+      label: "Avg margin",
+      value: advanced ? `${advanced.totals.averageMarginPercent}%` : "Loading",
+      icon: TrendingUp
+    },
+    {
+      label: "Pipeline",
+      value: advanced ? `${settings?.currency ?? "USD"} ${Math.round(advanced.totals.totalRecommendedPipeline).toLocaleString()}` : "Loading",
+      icon: Target
+    },
+    {
+      label: "Capacity",
+      value: advanced ? `${advanced.totals.averageCapacityCoveragePercent}%` : "Loading",
+      icon: Users
     }
   ];
 
@@ -58,11 +89,11 @@ export function SaasCommandCenter() {
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <h1 className="text-xl font-semibold text-ink">Commercial estimation command center</h1>
-            <p className="mt-1 text-sm text-accent-600">Tenant-aware workflow, market settings, usage gates, and governed estimation records.</p>
+            <p className="mt-1 text-sm text-accent-600">Tenant-aware workflow, usage gates, COCOMO/COSMIC signals, profitability, EVM readiness, and governed estimation records.</p>
           </div>
           <span className="rounded-md bg-brand-50 px-3 py-2 text-xs font-semibold text-brand-700">{usage?.plan ?? "FREE"} plan</span>
         </div>
-        <div className="mt-4 grid gap-3 md:grid-cols-3 xl:grid-cols-6">
+        <div className="mt-4 grid gap-3 md:grid-cols-3 xl:grid-cols-5">
           {cards.map((card) => {
             const Icon = card.icon;
             return (

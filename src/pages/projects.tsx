@@ -1,4 +1,5 @@
 import Head from "next/head";
+import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 import { RequireAuth } from "@/components/RequireAuth";
 import { SaasHeader } from "@/components/SaasHeader";
@@ -39,6 +40,17 @@ export default function ProjectsPage() {
     void fetchTemplates().then((payload) => setTemplates(payload.templates)).catch(() => setTemplates([]));
   }, []);
 
+  const onSectorChange = (templateId: string) => {
+    setSector(templateId);
+    const template = templates.find((item) => item.id === templateId);
+    if (!template) {
+      return;
+    }
+    setMethod(template.defaultMethod);
+    setHourlyRate(template.suggestedHourlyRate);
+    setRiskLevel(template.riskProfile);
+  };
+
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     try {
@@ -71,7 +83,7 @@ export default function ProjectsPage() {
           <div className="mx-auto grid max-w-6xl gap-5 lg:grid-cols-[360px_1fr]">
             <form onSubmit={onSubmit} className="rounded-lg border border-line bg-white p-5 shadow-sm">
               <h1 className="text-xl font-semibold">Create Market-Ready Project</h1>
-              <p className="mt-2 text-sm text-accent-600">Capture commercial settings up front for local VAT, currency, risk, and client-ready reports.</p>
+              <p className="mt-2 text-sm text-accent-600">Capture commercial settings up front for VAT, currency, risk, capacity, profitability, and client-ready reports.</p>
               <label className="mt-4 block text-sm font-semibold" htmlFor="client-name">
                 Client name
               </label>
@@ -121,7 +133,7 @@ export default function ProjectsPage() {
               <div className="mt-4 grid grid-cols-2 gap-3">
                 <label className="block text-sm font-semibold" htmlFor="sector">
                   Sector
-                  <select id="sector" value={sector} onChange={(event) => setSector(event.target.value)} className="mt-2 w-full rounded-lg border border-line px-3 py-2 text-sm font-normal outline-none focus:border-accent-500">
+                  <select id="sector" value={sector} onChange={(event) => onSectorChange(event.target.value)} className="mt-2 w-full rounded-lg border border-line px-3 py-2 text-sm font-normal outline-none focus:border-accent-500">
                     {(templates.length > 0 ? templates : [{ id: "SAAS", name: "B2B SaaS product" }]).map((item) => (
                       <option key={item.id} value={item.id}>
                         {item.name}
@@ -155,6 +167,7 @@ export default function ProjectsPage() {
 
             <section className="rounded-lg border border-line bg-white p-5 shadow-sm">
               <h2 className="text-xl font-semibold">Project History</h2>
+              <p className="mt-2 text-sm text-accent-600">Each project now feeds baseline analytics, advanced COCOMO/COSMIC models, EVM, proposals, and actuals calibration.</p>
               {error ? <p className="mt-3 rounded-md bg-panel px-3 py-2 text-sm text-accent-700">{error}</p> : null}
               {loading ? <p className="mt-5 text-sm text-accent-600">Loading projects...</p> : null}
               <div className="mt-5 grid gap-3">
@@ -173,7 +186,18 @@ export default function ProjectsPage() {
                         <span className="rounded-md bg-white px-2 py-1 text-xs font-semibold text-accent-600">{project.riskLevel}</span>
                       </div>
                     </div>
-                    <p className="mt-3 text-xs text-accent-600">Team {project.teamSize} · Updated {new Date(project.updatedAt).toLocaleString()}</p>
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      <Link href={`/analytics?projectId=${encodeURIComponent(project.id)}`} className="rounded-lg border border-line bg-white px-3 py-2 text-xs font-semibold text-accent-700">
+                        Analytics
+                      </Link>
+                      <Link href={`/advanced-analytics?projectId=${encodeURIComponent(project.id)}`} className="rounded-lg bg-ink px-3 py-2 text-xs font-semibold text-white">
+                        Advanced
+                      </Link>
+                      <Link href={`/actuals?projectId=${encodeURIComponent(project.id)}`} className="rounded-lg border border-line bg-white px-3 py-2 text-xs font-semibold text-accent-700">
+                        Actuals
+                      </Link>
+                    </div>
+                    <p className="mt-3 text-xs text-accent-600">Team {project.teamSize} - Updated {new Date(project.updatedAt).toLocaleString()}</p>
                   </article>
                 ))}
               </div>

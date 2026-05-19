@@ -1,13 +1,17 @@
 import Head from "next/head";
+import Link from "next/link";
+import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import { Bar, BarChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { RequireAuth } from "@/components/RequireAuth";
 import { SaasHeader } from "@/components/SaasHeader";
 import {
+  fetchAdvancedProjectAnalytics,
   fetchPortfolioAnalytics,
   fetchProjectAnalytics,
   fetchProjects,
   requestApproval,
+  type AdvancedProjectAnalytics,
   type PortfolioAnalytics,
   type ProjectAnalytics,
   type ProjectSummary
@@ -22,10 +26,12 @@ function number(value: number): string {
 }
 
 export default function AnalyticsPage() {
+  const router = useRouter();
   const [portfolio, setPortfolio] = useState<PortfolioAnalytics | null>(null);
   const [projects, setProjects] = useState<ProjectSummary[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState("");
   const [projectAnalytics, setProjectAnalytics] = useState<ProjectAnalytics | null>(null);
+  const [advancedAnalytics, setAdvancedAnalytics] = useState<AdvancedProjectAnalytics | null>(null);
   const [mounted, setMounted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [approvalMessage, setApprovalMessage] = useState<string | null>(null);
@@ -43,12 +49,26 @@ export default function AnalyticsPage() {
   }, []);
 
   useEffect(() => {
-    if (!selectedProjectId) {
-      setProjectAnalytics(null);
+    if (!router.isReady || projects.length === 0) {
       return;
     }
-    void fetchProjectAnalytics(selectedProjectId)
-      .then((payload) => setProjectAnalytics(payload.analytics))
+    const queryProjectId = typeof router.query.projectId === "string" ? router.query.projectId : "";
+    if (queryProjectId && projects.some((project) => project.id === queryProjectId)) {
+      setSelectedProjectId(queryProjectId);
+    }
+  }, [projects, router.isReady, router.query.projectId]);
+
+  useEffect(() => {
+    if (!selectedProjectId) {
+      setProjectAnalytics(null);
+      setAdvancedAnalytics(null);
+      return;
+    }
+    void Promise.all([fetchProjectAnalytics(selectedProjectId), fetchAdvancedProjectAnalytics(selectedProjectId)])
+      .then(([projectPayload, advancedPayload]) => {
+        setProjectAnalytics(projectPayload.analytics);
+        setAdvancedAnalytics(advancedPayload.analytics);
+      })
       .catch((requestError) => setError(requestError instanceof Error ? requestError.message : "Unable to load project analytics."));
   }, [selectedProjectId]);
 
@@ -89,7 +109,7 @@ export default function AnalyticsPage() {
                 <div>
                   <h1 className="text-2xl font-semibold">Commercial Analytics</h1>
                   <p className="mt-2 max-w-3xl text-sm text-accent-600">
-                    Portfolio health, risk ranges, estimate accuracy, Monte Carlo confidence, and sector benchmarking for sales and delivery teams.
+                    Portfolio health, risk ranges, estimate accuracy, Monte Carlo confidence, COCOMO/COSMIC signals, EVM status, and sector benchmarking for sales and delivery teams.
                   </p>
                 </div>
                 <select value={selectedProjectId} onChange={(event) => setSelectedProjectId(event.target.value)} className="rounded-lg border border-line bg-white px-3 py-2 text-sm font-semibold outline-none focus:border-accent-500">
@@ -201,7 +221,17 @@ export default function AnalyticsPage() {
                 </article>
 
                 <article className="rounded-lg border border-line bg-white p-5 shadow-sm">
-                  <h2 className="text-lg font-semibold">Delivery Intelligence</h2>
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <h2 className="text-lg font-semibold">Delivery Intelligence</h2>
+                      <p className="mt-1 text-sm text-accent-600">Baseline analytics with advanced commercial checks beside it.</p>
+                    </div>
+                    {advancedAnalytics ? (
+                      <Link href={`/advanced-analytics?projectId=${encodeURIComponent(selectedProjectId)}`} className="rounded-lg border border-line bg-panel px-3 py-2 text-sm font-semibold text-accent-700">
+                        Open advanced view
+                      </Link>
+                    ) : null}
+                  </div>
                   <div className="mt-4 grid gap-3 md:grid-cols-3">
                     <div className="rounded-lg bg-panel p-3">
                       <p className="text-xs font-semibold uppercase text-accent-600">P80 Cost</p>
@@ -216,6 +246,26 @@ export default function AnalyticsPage() {
                       <p className="mt-2 font-semibold">{projectAnalytics.monteCarlo.p80DurationMonths} mo</p>
                     </div>
                   </div>
+                  {advancedAnalytics ? (
+                    <div className="mt-4 grid gap-3 md:grid-cols-4">
+                      <div className="rounded-lg border border-line bg-brand-50 p-3">
+                        <p className="text-xs font-semibold uppercase text-brand-700">Risk score</p>
+                        <p className="mt-2 font-semibold">{advancedAnalytics.risk.score}/100</p>
+                      </div>
+                      <div className="rounded-lg border border-line bg-brand-50 p-3">
+                        <p className="text-xs font-semibold uppercase text-brand-700">Margin</p>
+                        <p className="mt-2 font-semibold">{advancedAnalytics.profitability.grossMarginPercent}%</p>
+                      </div>
+                      <div className="rounded-lg border border-line bg-brand-50 p-3">
+                        <p className="text-xs font-semibold uppercase text-brand-700">COCOMO cost</p>
+                        <p className="mt-2 font-semibold">{money(advancedAnalytics.cocomo.cost, advancedAnalytics.currency)}</p>
+                      </div>
+                      <div className="rounded-lg border border-line bg-brand-50 p-3">
+                        <p className="text-xs font-semibold uppercase text-brand-700">EVM status</p>
+                        <p className="mt-2 font-semibold">{advancedAnalytics.evm.status}</p>
+                      </div>
+                    </div>
+                  ) : null}
                   <div className="mt-5 grid gap-4 md:grid-cols-2">
                     <div>
                       <p className="text-sm font-semibold">Method comparison</p>

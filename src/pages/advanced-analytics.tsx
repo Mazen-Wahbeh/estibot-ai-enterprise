@@ -1,4 +1,5 @@
 import Head from "next/head";
+import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import { Bar, BarChart, CartesianGrid, Line, LineChart, Radar, RadarChart, PolarAngleAxis, PolarGrid, PolarRadiusAxis, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { RequireAuth } from "@/components/RequireAuth";
@@ -21,6 +22,7 @@ function metric(value: number, suffix = ""): string {
 }
 
 export default function AdvancedAnalyticsPage() {
+  const router = useRouter();
   const [portfolio, setPortfolio] = useState<AdvancedPortfolioAnalytics | null>(null);
   const [projects, setProjects] = useState<ProjectSummary[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState("");
@@ -38,6 +40,16 @@ export default function AdvancedAnalyticsPage() {
       })
       .catch((requestError) => setError(requestError instanceof Error ? requestError.message : "Unable to load advanced analytics."));
   }, []);
+
+  useEffect(() => {
+    if (!router.isReady || projects.length === 0) {
+      return;
+    }
+    const queryProjectId = typeof router.query.projectId === "string" ? router.query.projectId : "";
+    if (queryProjectId && projects.some((project) => project.id === queryProjectId)) {
+      setSelectedProjectId(queryProjectId);
+    }
+  }, [projects, router.isReady, router.query.projectId]);
 
   useEffect(() => {
     if (!selectedProjectId) {

@@ -21,11 +21,28 @@ loadLocalEnv();
 
 const prisma = new PrismaClient();
 
+async function execute(statement) {
+  try {
+    await prisma.$executeRawUnsafe(statement);
+  } catch (error) {
+    const message = String(error && error.message ? error.message : error);
+    if (!/duplicate column name|already exists/i.test(message)) {
+      throw error;
+    }
+  }
+}
+
 const statements = [
   `CREATE TABLE IF NOT EXISTS "Tenant" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "name" TEXT NOT NULL,
     "plan" TEXT NOT NULL DEFAULT 'FREE',
+    "locale" TEXT NOT NULL DEFAULT 'en',
+    "currency" TEXT NOT NULL DEFAULT 'USD',
+    "country" TEXT NOT NULL DEFAULT 'GLOBAL',
+    "dataResidency" TEXT NOT NULL DEFAULT 'GLOBAL',
+    "vatRate" REAL NOT NULL DEFAULT 0,
+    "reportBrand" TEXT NOT NULL DEFAULT 'EstiBot AI SaaS',
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL
   )`,
@@ -47,6 +64,12 @@ const statements = [
     "description" TEXT NOT NULL,
     "method" TEXT NOT NULL,
     "hourlyRate" REAL NOT NULL,
+    "currency" TEXT NOT NULL DEFAULT 'USD',
+    "country" TEXT NOT NULL DEFAULT 'GLOBAL',
+    "clientName" TEXT,
+    "status" TEXT NOT NULL DEFAULT 'DRAFT',
+    "riskLevel" TEXT NOT NULL DEFAULT 'MEDIUM',
+    "vatRate" REAL NOT NULL DEFAULT 0,
     "stateJson" TEXT NOT NULL,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL,
@@ -56,11 +79,24 @@ const statements = [
   `CREATE TABLE IF NOT EXISTS "Estimation" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "projectId" TEXT NOT NULL,
+    "version" INTEGER NOT NULL DEFAULT 1,
+    "method" TEXT NOT NULL DEFAULT 'BOTH',
     "fpData" TEXT NOT NULL,
     "ucpData" TEXT NOT NULL,
     "results" TEXT NOT NULL,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "Estimation_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "Project" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+  )`,
+  `CREATE TABLE IF NOT EXISTS "AuditLog" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "tenantId" TEXT NOT NULL,
+    "userId" TEXT,
+    "action" TEXT NOT NULL,
+    "entity" TEXT NOT NULL,
+    "entityId" TEXT,
+    "metadata" TEXT NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "AuditLog_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant" ("id") ON DELETE CASCADE ON UPDATE CASCADE
   )`,
   `CREATE TABLE IF NOT EXISTS "UsageLog" (
     "id" TEXT NOT NULL PRIMARY KEY,
@@ -86,12 +122,34 @@ const statements = [
   `CREATE INDEX IF NOT EXISTS "Estimation_projectId_idx" ON "Estimation"("projectId")`,
   `CREATE INDEX IF NOT EXISTS "UsageLog_userId_createdAt_idx" ON "UsageLog"("userId", "createdAt")`,
   `CREATE INDEX IF NOT EXISTS "UsageLog_tenantId_createdAt_idx" ON "UsageLog"("tenantId", "createdAt")`,
-  `CREATE INDEX IF NOT EXISTS "Subscription_tenantId_idx" ON "Subscription"("tenantId")`
+  `CREATE INDEX IF NOT EXISTS "Subscription_tenantId_idx" ON "Subscription"("tenantId")`,
+  `CREATE INDEX IF NOT EXISTS "AuditLog_tenantId_createdAt_idx" ON "AuditLog"("tenantId", "createdAt")`,
+  `CREATE INDEX IF NOT EXISTS "AuditLog_userId_createdAt_idx" ON "AuditLog"("userId", "createdAt")`
+];
+
+const alterStatements = [
+  `ALTER TABLE "Tenant" ADD COLUMN "locale" TEXT NOT NULL DEFAULT 'en'`,
+  `ALTER TABLE "Tenant" ADD COLUMN "currency" TEXT NOT NULL DEFAULT 'USD'`,
+  `ALTER TABLE "Tenant" ADD COLUMN "country" TEXT NOT NULL DEFAULT 'GLOBAL'`,
+  `ALTER TABLE "Tenant" ADD COLUMN "dataResidency" TEXT NOT NULL DEFAULT 'GLOBAL'`,
+  `ALTER TABLE "Tenant" ADD COLUMN "vatRate" REAL NOT NULL DEFAULT 0`,
+  `ALTER TABLE "Tenant" ADD COLUMN "reportBrand" TEXT NOT NULL DEFAULT 'EstiBot AI SaaS'`,
+  `ALTER TABLE "Project" ADD COLUMN "currency" TEXT NOT NULL DEFAULT 'USD'`,
+  `ALTER TABLE "Project" ADD COLUMN "country" TEXT NOT NULL DEFAULT 'GLOBAL'`,
+  `ALTER TABLE "Project" ADD COLUMN "clientName" TEXT`,
+  `ALTER TABLE "Project" ADD COLUMN "status" TEXT NOT NULL DEFAULT 'DRAFT'`,
+  `ALTER TABLE "Project" ADD COLUMN "riskLevel" TEXT NOT NULL DEFAULT 'MEDIUM'`,
+  `ALTER TABLE "Project" ADD COLUMN "vatRate" REAL NOT NULL DEFAULT 0`,
+  `ALTER TABLE "Estimation" ADD COLUMN "version" INTEGER NOT NULL DEFAULT 1`,
+  `ALTER TABLE "Estimation" ADD COLUMN "method" TEXT NOT NULL DEFAULT 'BOTH'`
 ];
 
 async function main() {
   for (const statement of statements) {
-    await prisma.$executeRawUnsafe(statement);
+    await execute(statement);
+  }
+  for (const statement of alterStatements) {
+    await execute(statement);
   }
   console.log("Database tables are ready.");
 }

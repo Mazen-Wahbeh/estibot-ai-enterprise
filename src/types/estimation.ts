@@ -22,6 +22,12 @@ export interface ProjectState {
   description?: string;
   hourlyRate?: number;
   method?: EstimationMethod;
+  currency?: string;
+  country?: string;
+  clientName?: string;
+  status?: string;
+  riskLevel?: string;
+  vatRate?: number;
 }
 
 export interface FunctionPointState {

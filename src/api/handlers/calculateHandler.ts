@@ -8,6 +8,7 @@ import { hasStrictStateShape, sanitizeState } from "@/utils/state";
 import { prisma } from "@/server/prisma";
 import { enforceMonthlyUsage, logUsage } from "@/server/rateLimit";
 import { stateRequestSchema } from "@/server/schemas";
+import { audit } from "@/server/audit";
 
 interface CalculationPayload {
   state: EstimationState;
@@ -66,12 +67,15 @@ export const calculateHandler: ProtectedApiHandler = async (req, res, user) => {
     await prisma.estimation.create({
       data: {
         projectId: project.id,
+        version: await prisma.estimation.count({ where: { projectId: project.id } }) + 1,
+        method: calculations.method,
         fpData: JSON.stringify(saved.fp),
         ucpData: JSON.stringify(saved.ucp),
         results: JSON.stringify(calculations)
       }
     });
     await logUsage(user, "estimation");
+    await audit(user, "CALCULATE", "Project", project.id, { method: calculations.method, confidence: calculations.confidence.level });
 
     res.status(200).json({
       ok: true,

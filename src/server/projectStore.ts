@@ -16,7 +16,9 @@ function parseState(raw: string): EstimationState {
   }
 }
 
-function stateForProject(project: Pick<Project, "name" | "description" | "method" | "hourlyRate" | "stateJson">): EstimationState {
+function stateForProject(
+  project: Pick<Project, "name" | "description" | "method" | "hourlyRate" | "currency" | "country" | "clientName" | "status" | "riskLevel" | "vatRate" | "stateJson">
+): EstimationState {
   const state = parseState(project.stateJson);
   return {
     ...state,
@@ -25,7 +27,13 @@ function stateForProject(project: Pick<Project, "name" | "description" | "method
       name: state.project.name ?? project.name,
       description: state.project.description ?? project.description,
       method: (state.project.method ?? project.method) as EstimationMethod,
-      hourlyRate: state.project.hourlyRate ?? project.hourlyRate
+      hourlyRate: state.project.hourlyRate ?? project.hourlyRate,
+      currency: state.project.currency ?? project.currency,
+      country: state.project.country ?? project.country,
+      clientName: state.project.clientName ?? project.clientName ?? undefined,
+      status: state.project.status ?? project.status,
+      riskLevel: state.project.riskLevel ?? project.riskLevel,
+      vatRate: state.project.vatRate ?? project.vatRate
     }
   };
 }
@@ -48,6 +56,9 @@ export async function ensureDefaultProject(user: SessionUser): Promise<Project> 
       description: "Draft software project estimation session.",
       method: "BOTH",
       hourlyRate: 50,
+      currency: "USD",
+      country: "GLOBAL",
+      vatRate: 0,
       stateJson: stringify(initialState)
     }
   });
@@ -87,6 +98,12 @@ export async function saveProjectState(user: SessionUser, state: EstimationState
       description: clean.project.description?.trim() || project.description,
       method: clean.project.method ?? project.method,
       hourlyRate: clean.project.hourlyRate ?? project.hourlyRate,
+      currency: clean.project.currency ?? project.currency,
+      country: clean.project.country ?? project.country,
+      clientName: clean.project.clientName ?? project.clientName,
+      status: clean.project.status ?? project.status,
+      riskLevel: clean.project.riskLevel ?? project.riskLevel,
+      vatRate: clean.project.vatRate ?? project.vatRate,
       stateJson: stringify(clean)
     }
   });

@@ -4,6 +4,7 @@ import { hashPassword, setSessionCookie, type SessionUser } from "@/server/auth"
 import { prisma } from "@/server/prisma";
 import { planLimits } from "@/server/plans";
 import { registerSchema } from "@/server/schemas";
+import { audit } from "@/server/audit";
 
 export default withPost(async (req, res) => {
   const parsed = registerSchema.safeParse(req.body);
@@ -58,6 +59,7 @@ export default withPost(async (req, res) => {
     plan: user.tenant.plan
   };
   setSessionCookie(req, res, sessionUser);
+  await audit(sessionUser, "REGISTER", "User", user.id, { tenantName });
 
   res.status(201).json({
     ok: true,

@@ -23,8 +23,52 @@ export interface ProjectSummary {
   description: string;
   method: string;
   hourlyRate: number;
+  currency: string;
+  country: string;
+  clientName: string | null;
+  status: string;
+  riskLevel: string;
+  vatRate: number;
   updatedAt: string;
   latestEstimationAt: string | null;
+}
+
+export interface TenantSettings {
+  name: string;
+  plan: string;
+  locale: string;
+  currency: string;
+  country: string;
+  dataResidency: string;
+  vatRate: number;
+  reportBrand: string;
+}
+
+export interface UsagePayload {
+  plan: string;
+  limits: {
+    estimationsPerMonth: number | null;
+    pdfExportsPerMonth: number | null;
+    analytics: string;
+    apiAccess: boolean;
+    teamSeats: number | null;
+  };
+  usage: {
+    estimations: number;
+    pdfExports: number;
+    chats: number;
+    projects: number;
+    cycleStart: string;
+  };
+}
+
+export interface AuditEntry {
+  id: string;
+  action: string;
+  entity: string;
+  entityId: string | null;
+  metadata: string;
+  createdAt: string;
 }
 
 async function wait(ms: number): Promise<void> {
@@ -84,12 +128,38 @@ export function fetchProjects(): Promise<{ projects: ProjectSummary[] }> {
   return getJson<{ projects: ProjectSummary[] }>("/api/projects");
 }
 
-export function createProject(input: { name: string; description: string; method: "FP" | "UCP" | "BOTH"; hourlyRate: number }): Promise<{ project: ProjectSummary }> {
+export function createProject(input: {
+  name: string;
+  description: string;
+  method: "FP" | "UCP" | "BOTH";
+  hourlyRate: number;
+  currency: string;
+  country: string;
+  clientName?: string;
+  riskLevel: "LOW" | "MEDIUM" | "HIGH";
+  vatRate: number;
+}): Promise<{ project: ProjectSummary }> {
   return postJson<{ project: ProjectSummary }>("/api/projects", input, 0);
 }
 
 export function fetchAdminMetrics(): Promise<Record<string, number | string>> {
   return getJson<Record<string, number | string>>("/api/admin/metrics");
+}
+
+export function fetchTenantSettings(): Promise<{ settings: TenantSettings }> {
+  return getJson<{ settings: TenantSettings }>("/api/settings");
+}
+
+export function saveTenantSettings(settings: Omit<TenantSettings, "plan">): Promise<{ settings: TenantSettings }> {
+  return postJson<{ settings: TenantSettings }>("/api/settings", settings, 0);
+}
+
+export function fetchUsage(): Promise<UsagePayload> {
+  return getJson<UsagePayload>("/api/billing/usage");
+}
+
+export function fetchAuditLogs(): Promise<{ logs: AuditEntry[] }> {
+  return getJson<{ logs: AuditEntry[] }>("/api/audit/logs");
 }
 
 export function fetchState(): Promise<StatePayload> {

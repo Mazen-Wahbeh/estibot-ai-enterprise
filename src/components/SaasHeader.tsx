@@ -31,6 +31,12 @@ export function SaasHeader() {
           <Link className="font-medium text-accent-600 hover:text-ink" href="/billing">
             Billing
           </Link>
+          <Link className="font-medium text-accent-600 hover:text-ink" href="/settings">
+            Settings
+          </Link>
+          <Link className="font-medium text-accent-600 hover:text-ink" href="/audit">
+            Audit
+          </Link>
           {user?.role === "ADMIN" ? (
             <Link className="font-medium text-accent-600 hover:text-ink" href="/admin">
               Admin

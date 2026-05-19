@@ -6,6 +6,7 @@ import { badRequest, type ProtectedApiHandler } from "@/api/http";
 import { hasStrictStateShape, sanitizeState } from "@/utils/state";
 import { enforceMonthlyUsage, logUsage } from "@/server/rateLimit";
 import { stateRequestSchema } from "@/server/schemas";
+import { audit } from "@/server/audit";
 
 export const pdfHandler: ProtectedApiHandler = async (req, res, user) => {
   const limit = await enforceMonthlyUsage(user, "pdf");
@@ -50,6 +51,7 @@ export const pdfHandler: ProtectedApiHandler = async (req, res, user) => {
     const pdf = generatePdfReport(state, calculations, { tenantName: user.tenantName });
     const fileName = `${(state.project.name ?? "estibot-report").replace(/[^a-z0-9]+/gi, "-").toLowerCase()}-estimation.pdf`;
     await logUsage(user, "pdf");
+    await audit(user, "EXPORT_PDF", "Project", projectId, { fileName });
 
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);

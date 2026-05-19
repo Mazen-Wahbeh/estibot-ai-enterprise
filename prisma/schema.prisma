@@ -11,10 +11,17 @@ model Tenant {
   id            String         @id @default(cuid())
   name          String
   plan          String         @default("FREE")
+  locale        String         @default("en")
+  currency      String         @default("USD")
+  country       String         @default("GLOBAL")
+  dataResidency String         @default("GLOBAL")
+  vatRate       Float          @default(0)
+  reportBrand   String         @default("EstiBot AI SaaS")
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   users         User[]
   projects      Project[]
+  auditLogs     AuditLog[]
   subscriptions Subscription[]
 }
 
@@ -39,6 +46,12 @@ model Project {
   description String
   method      String
   hourlyRate  Float
+  currency    String       @default("USD")
+  country     String       @default("GLOBAL")
+  clientName  String?
+  status      String       @default("DRAFT")
+  riskLevel   String       @default("MEDIUM")
+  vatRate     Float        @default(0)
   stateJson   String
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
@@ -53,6 +66,8 @@ model Project {
 model Estimation {
   id        String   @id @default(cuid())
   projectId String
+  version   Int      @default(1)
+  method    String   @default("BOTH")
   fpData    String
   ucpData   String
   results   String
@@ -60,6 +75,21 @@ model Estimation {
   project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([projectId])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  tenantId  String
+  userId    String?
+  action    String
+  entity    String
+  entityId  String?
+  metadata  String
+  createdAt DateTime @default(now())
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, createdAt])
+  @@index([userId, createdAt])
 }
 
 model UsageLog {

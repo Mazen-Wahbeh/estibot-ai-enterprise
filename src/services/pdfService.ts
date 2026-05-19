@@ -5,10 +5,16 @@ import type { CalculationResult, EstimationState, FunctionPointResult, UseCasePo
 type PdfWithAutoTable = jsPDF & { lastAutoTable?: { finalY: number } };
 interface PdfOptions {
   tenantName?: string;
+  currency?: string;
 }
 
-function currency(value: number): string {
-  return `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+function currency(value: number, code = "USD"): string {
+  return new Intl.NumberFormat("en", {
+    style: "currency",
+    currency: code,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(value);
 }
 
 function metric(value: number): string {
@@ -89,15 +95,19 @@ function addCover(doc: jsPDF, state: EstimationState, calculations: CalculationR
   doc.text("Deterministic state-machine output. Missing data is never inferred.", 52, 326);
 }
 
-function addOverview(doc: PdfWithAutoTable, state: EstimationState, calculations: CalculationResult): void {
+function addOverview(doc: PdfWithAutoTable, state: EstimationState, calculations: CalculationResult, options?: PdfOptions): void {
   doc.addPage();
   addTitle(doc, "Project Overview", "Input summary and estimation scope");
   let y = 98;
   y = table(doc, y, [["Field", "Value"]], [
     ["Project name", state.project.name ?? "-"],
+    ["Client", state.project.clientName ?? "-"],
     ["Project overview", state.project.description ?? "-"],
     ["Method", calculations.method],
-    ["Hourly rate", currency(state.project.hourlyRate ?? 0)],
+    ["Country / currency", `${state.project.country ?? "GLOBAL"} / ${state.project.currency ?? options?.currency ?? "USD"}`],
+    ["VAT rate", `${state.project.vatRate ?? 0}%`],
+    ["Risk level", state.project.riskLevel ?? "-"],
+    ["Hourly rate", currency(state.project.hourlyRate ?? 0, state.project.currency ?? options?.currency)],
     ["State phase", state.phase],
     ["Confidence", calculations.confidence.level],
     ["Confidence basis", calculations.confidence.basis]
@@ -107,7 +117,7 @@ function addOverview(doc: PdfWithAutoTable, state: EstimationState, calculations
   doc.text("State schema root: phase, project, fp, ucp, technical, environmental, missingFields, isComplete.", 42, y + 8);
 }
 
-function addFpSection(doc: PdfWithAutoTable, fp: FunctionPointResult | null): void {
+function addFpSection(doc: PdfWithAutoTable, fp: FunctionPointResult | null, options?: PdfOptions): void {
   doc.addPage();
   addTitle(doc, "Function Point Analysis", "UFP, VAF, AFP, effort, duration, and cost");
   if (!fp) {
@@ -123,12 +133,12 @@ function addFpSection(doc: PdfWithAutoTable, fp: FunctionPointResult | null): vo
     ["Adjusted Function Points (AFP)", metric(fp.afp)],
     ["Effort hours", metric(fp.effortHours)],
     ["Duration months", metric(fp.durationMonths)],
-    ["Cost", currency(fp.cost)]
+    ["Cost", currency(fp.cost, options?.currency)]
   ]);
   table(doc, y, [["Technical Factor", "Rating", "Weight", "Unused", "Weighted Value"]], rowsForWeighted(fp.technicalRows));
 }
 
-function addUcpSection(doc: PdfWithAutoTable, ucp: UseCasePointResult | null): void {
+function addUcpSection(doc: PdfWithAutoTable, ucp: UseCasePointResult | null, options?: PdfOptions): void {
   doc.addPage();
   addTitle(doc, "Use Case Point Analysis", "Actors, use cases, technical adjustment, environmental adjustment");
   if (!ucp) {
@@ -149,13 +159,13 @@ function addUcpSection(doc: PdfWithAutoTable, ucp: UseCasePointResult | null): v
     ["Use Case Points", metric(ucp.ucp)],
     ["Effort hours", metric(ucp.effortHours)],
     ["Duration months", metric(ucp.durationMonths)],
-    ["Cost", currency(ucp.cost)]
+    ["Cost", currency(ucp.cost, options?.currency)]
   ]);
   y = table(doc, y, [["Technical Factor", "Rating", "Weight", "Unused", "Weighted Value"]], rowsForWeighted(ucp.technicalRows));
   table(doc, y, [["Environmental Factor", "Rating", "Weight", "Unused", "Weighted Value"]], rowsForWeighted(ucp.environmentalRows));
 }
 
-function addComparison(doc: PdfWithAutoTable, calculations: CalculationResult): void {
+function addComparison(doc: PdfWithAutoTable, calculations: CalculationResult, options?: PdfOptions): void {
   doc.addPage();
   addTitle(doc, "Cost Estimation Summary", "Comparison, chart, and confidence score");
 
@@ -183,8 +193,8 @@ function addComparison(doc: PdfWithAutoTable, calculations: CalculationResult): 
   }
 
   table(doc, 206, [["Estimate", "Effort Hours", "Duration Months", "Cost"]], [
-    ["Function Points", calculations.fp ? metric(calculations.fp.effortHours) : "N/A", calculations.fp ? metric(calculations.fp.durationMonths) : "N/A", calculations.fp ? currency(calculations.fp.cost) : "N/A"],
-    ["Use Case Points", calculations.ucp ? metric(calculations.ucp.effortHours) : "N/A", calculations.ucp ? metric(calculations.ucp.durationMonths) : "N/A", calculations.ucp ? currency(calculations.ucp.cost) : "N/A"]
+    ["Function Points", calculations.fp ? metric(calculations.fp.effortHours) : "N/A", calculations.fp ? metric(calculations.fp.durationMonths) : "N/A", calculations.fp ? currency(calculations.fp.cost, options?.currency) : "N/A"],
+    ["Use Case Points", calculations.ucp ? metric(calculations.ucp.effortHours) : "N/A", calculations.ucp ? metric(calculations.ucp.durationMonths) : "N/A", calculations.ucp ? currency(calculations.ucp.cost, options?.currency) : "N/A"]
   ]);
 
   table(doc, 334, [["Confidence", "Difference", "Basis"]], [
@@ -210,10 +220,11 @@ function addFooters(doc: jsPDF): void {
 export function generatePdfReport(state: EstimationState, calculations: CalculationResult, options?: PdfOptions): Buffer {
   const doc = new jsPDF({ orientation: "portrait", unit: "pt", format: "a4" }) as PdfWithAutoTable;
   addCover(doc, state, calculations, options);
-  addOverview(doc, state, calculations);
-  addFpSection(doc, calculations.fp);
-  addUcpSection(doc, calculations.ucp);
-  addComparison(doc, calculations);
+  const normalizedOptions = { ...options, currency: state.project.currency ?? options?.currency ?? "USD" };
+  addOverview(doc, state, calculations, normalizedOptions);
+  addFpSection(doc, calculations.fp, normalizedOptions);
+  addUcpSection(doc, calculations.ucp, normalizedOptions);
+  addComparison(doc, calculations, normalizedOptions);
   addFooters(doc);
   return Buffer.from(doc.output("arraybuffer"));
 }

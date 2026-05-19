@@ -3,6 +3,7 @@ import { withProtectedMethods, badRequest } from "@/api/http";
 import { prisma } from "@/server/prisma";
 import { projectCreateSchema } from "@/server/schemas";
 import { initialState } from "@/utils/state";
+import { audit } from "@/server/audit";
 
 export default withProtectedMethods(["GET", "POST"], async (req, res, user) => {
   if (req.method === "GET") {
@@ -26,6 +27,12 @@ export default withProtectedMethods(["GET", "POST"], async (req, res, user) => {
           description: project.description,
           method: project.method,
           hourlyRate: project.hourlyRate,
+          currency: project.currency,
+          country: project.country,
+          clientName: project.clientName,
+          status: project.status,
+          riskLevel: project.riskLevel,
+          vatRate: project.vatRate,
           updatedAt: project.updatedAt.toISOString(),
           latestEstimationAt: project.estimations[0]?.createdAt.toISOString() ?? null
         }))
@@ -42,6 +49,7 @@ export default withProtectedMethods(["GET", "POST"], async (req, res, user) => {
 
   const state = {
     ...initialState,
+    phase: "FUNCTION_POINT_COLLECTION" as const,
     project: parsed.data,
     missingFields: []
   };
@@ -54,9 +62,15 @@ export default withProtectedMethods(["GET", "POST"], async (req, res, user) => {
       description: parsed.data.description,
       method: parsed.data.method,
       hourlyRate: parsed.data.hourlyRate,
+      currency: parsed.data.currency,
+      country: parsed.data.country,
+      clientName: parsed.data.clientName,
+      riskLevel: parsed.data.riskLevel,
+      vatRate: parsed.data.vatRate,
       stateJson: JSON.stringify(state)
     }
   });
+  await audit(user, "CREATE_PROJECT", "Project", project.id, { method: project.method, country: project.country, currency: project.currency });
 
   res.status(201).json({
     ok: true,
@@ -67,6 +81,12 @@ export default withProtectedMethods(["GET", "POST"], async (req, res, user) => {
         description: project.description,
         method: project.method,
         hourlyRate: project.hourlyRate,
+        currency: project.currency,
+        country: project.country,
+        clientName: project.clientName,
+        status: project.status,
+        riskLevel: project.riskLevel,
+        vatRate: project.vatRate,
         updatedAt: project.updatedAt.toISOString()
       }
     }

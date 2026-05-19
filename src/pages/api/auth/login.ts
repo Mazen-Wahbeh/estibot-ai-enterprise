@@ -3,6 +3,7 @@ import { withPost, badRequest } from "@/api/http";
 import { setSessionCookie, verifyPassword, type SessionUser } from "@/server/auth";
 import { prisma } from "@/server/prisma";
 import { loginSchema } from "@/server/schemas";
+import { audit } from "@/server/audit";
 
 export default withPost(async (req, res) => {
   const parsed = loginSchema.safeParse(req.body);
@@ -30,6 +31,7 @@ export default withPost(async (req, res) => {
     plan: user.tenant.plan
   };
   setSessionCookie(req, res, sessionUser);
+  await audit(sessionUser, "LOGIN", "User", user.id);
 
   res.status(200).json({
     ok: true,

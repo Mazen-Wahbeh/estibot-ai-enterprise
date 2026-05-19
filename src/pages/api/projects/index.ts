@@ -32,6 +32,8 @@ export default withProtectedMethods(["GET", "POST"], async (req, res, user) => {
           clientName: project.clientName,
           status: project.status,
           riskLevel: project.riskLevel,
+          sector: project.sector,
+          teamSize: project.teamSize,
           vatRate: project.vatRate,
           updatedAt: project.updatedAt.toISOString(),
           latestEstimationAt: project.estimations[0]?.createdAt.toISOString() ?? null
@@ -66,6 +68,8 @@ export default withProtectedMethods(["GET", "POST"], async (req, res, user) => {
       country: parsed.data.country,
       clientName: parsed.data.clientName,
       riskLevel: parsed.data.riskLevel,
+      sector: parsed.data.sector,
+      teamSize: parsed.data.teamSize,
       vatRate: parsed.data.vatRate,
       stateJson: JSON.stringify(state)
     }
@@ -86,8 +90,11 @@ export default withProtectedMethods(["GET", "POST"], async (req, res, user) => {
         clientName: project.clientName,
         status: project.status,
         riskLevel: project.riskLevel,
+        sector: project.sector,
+        teamSize: project.teamSize,
         vatRate: project.vatRate,
-        updatedAt: project.updatedAt.toISOString()
+        updatedAt: project.updatedAt.toISOString(),
+        latestEstimationAt: null
       }
     }
   } satisfies ApiResponse<{ project: Record<string, unknown> }>);

@@ -25,8 +25,26 @@ export function SaasHeader() {
           <Link className="font-medium text-accent-600 hover:text-ink" href="/dashboard">
             Dashboard
           </Link>
+          <Link className="font-medium text-accent-600 hover:text-ink" href="/analytics">
+            Analytics
+          </Link>
           <Link className="font-medium text-accent-600 hover:text-ink" href="/projects">
             Projects
+          </Link>
+          <Link className="font-medium text-accent-600 hover:text-ink" href="/actuals">
+            Actuals
+          </Link>
+          <Link className="font-medium text-accent-600 hover:text-ink" href="/templates">
+            Templates
+          </Link>
+          <Link className="font-medium text-accent-600 hover:text-ink" href="/proposals">
+            Proposals
+          </Link>
+          <Link className="font-medium text-accent-600 hover:text-ink" href="/approvals">
+            Approvals
+          </Link>
+          <Link className="font-medium text-accent-600 hover:text-ink" href="/integrations">
+            Integrations
           </Link>
           <Link className="font-medium text-accent-600 hover:text-ink" href="/billing">
             Billing

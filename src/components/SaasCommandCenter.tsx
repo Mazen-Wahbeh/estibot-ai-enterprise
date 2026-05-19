@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Activity, Database, Globe2, ReceiptText } from "lucide-react";
-import { fetchTenantSettings, fetchUsage, type TenantSettings, type UsagePayload } from "@/services/apiClient";
+import { Activity, BarChart3, Database, Gauge, Globe2, ReceiptText } from "lucide-react";
+import { fetchPortfolioAnalytics, fetchTenantSettings, fetchUsage, type PortfolioAnalytics, type TenantSettings, type UsagePayload } from "@/services/apiClient";
 
 function usageLabel(value: number, limit: number | null): string {
   return limit === null ? `${value} / unlimited` : `${value} / ${limit}`;
@@ -9,11 +9,13 @@ function usageLabel(value: number, limit: number | null): string {
 export function SaasCommandCenter() {
   const [usage, setUsage] = useState<UsagePayload | null>(null);
   const [settings, setSettings] = useState<TenantSettings | null>(null);
+  const [portfolio, setPortfolio] = useState<PortfolioAnalytics | null>(null);
 
   useEffect(() => {
-    void Promise.all([fetchUsage(), fetchTenantSettings()]).then(([usagePayload, settingsPayload]) => {
+    void Promise.all([fetchUsage(), fetchTenantSettings(), fetchPortfolioAnalytics()]).then(([usagePayload, settingsPayload, analyticsPayload]) => {
       setUsage(usagePayload);
       setSettings(settingsPayload.settings);
+      setPortfolio(analyticsPayload.analytics);
     });
   }, []);
 
@@ -37,6 +39,16 @@ export function SaasCommandCenter() {
       label: "Data residency",
       value: settings?.dataResidency ?? "Loading",
       icon: Database
+    },
+    {
+      label: "Portfolio cost",
+      value: portfolio ? `${settings?.currency ?? "USD"} ${Math.round(portfolio.totals.estimatedCost).toLocaleString()}` : "Loading",
+      icon: BarChart3
+    },
+    {
+      label: "Confidence",
+      value: portfolio?.benchmarks.portfolioConfidence ?? "Loading",
+      icon: Gauge
     }
   ];
 
@@ -50,7 +62,7 @@ export function SaasCommandCenter() {
           </div>
           <span className="rounded-md bg-brand-50 px-3 py-2 text-xs font-semibold text-brand-700">{usage?.plan ?? "FREE"} plan</span>
         </div>
-        <div className="mt-4 grid gap-3 md:grid-cols-4">
+        <div className="mt-4 grid gap-3 md:grid-cols-3 xl:grid-cols-6">
           {cards.map((card) => {
             const Icon = card.icon;
             return (

@@ -23,6 +23,7 @@ model Tenant {
   projects      Project[]
   auditLogs     AuditLog[]
   subscriptions Subscription[]
+  integrations  Integration[]
 }
 
 model User {
@@ -51,6 +52,8 @@ model Project {
   clientName  String?
   status      String       @default("DRAFT")
   riskLevel   String       @default("MEDIUM")
+  sector      String       @default("GENERAL")
+  teamSize    Int          @default(1)
   vatRate     Float        @default(0)
   stateJson   String
   createdAt   DateTime     @default(now())
@@ -58,6 +61,9 @@ model Project {
   tenant      Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   owner       User         @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   estimations Estimation[]
+  actuals     ActualResult[]
+  approvals   Approval[]
+  proposals   Proposal[]
 
   @@index([tenantId])
   @@index([ownerId])
@@ -114,5 +120,59 @@ model Subscription {
   updatedAt DateTime @updatedAt
   tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
+  @@index([tenantId])
+}
+
+model ActualResult {
+  id                 String   @id @default(cuid())
+  projectId          String
+  actualEffortHours  Float
+  actualDurationMonths Float
+  actualCost         Float
+  notes              String   @default("")
+  createdAt          DateTime @default(now())
+  project            Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, createdAt])
+}
+
+model Approval {
+  id            String   @id @default(cuid())
+  projectId     String
+  status        String   @default("PENDING")
+  requestedById String
+  reviewedById  String?
+  comment       String   @default("")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  project       Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, status])
+}
+
+model Proposal {
+  id          String   @id @default(cuid())
+  projectId   String
+  title       String
+  contentJson String
+  status      String   @default("DRAFT")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, createdAt])
+}
+
+model Integration {
+  id         String   @id @default(cuid())
+  tenantId   String
+  provider   String
+  status     String   @default("READY")
+  configJson String   @default("{}")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, provider])
   @@index([tenantId])
 }

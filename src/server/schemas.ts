@@ -23,6 +23,8 @@ export const projectCreateSchema = z.object({
   country: z.enum(supportedCountries).default("GLOBAL"),
   clientName: z.string().trim().max(120).optional(),
   riskLevel: z.enum(["LOW", "MEDIUM", "HIGH"]).default("MEDIUM"),
+  sector: z.string().trim().min(2).max(80).default("GENERAL"),
+  teamSize: z.number().int().min(1).max(500).default(1),
   vatRate: z.number().min(0).max(100).default(0)
 });
 
@@ -44,4 +46,38 @@ export const tenantSettingsSchema = z.object({
   dataResidency: z.enum(dataResidencyOptions),
   vatRate: z.number().min(0).max(100),
   reportBrand: z.string().trim().min(2).max(100)
+});
+
+export const projectIdSchema = z.object({
+  projectId: z.string().trim().min(1)
+});
+
+export const actualResultSchema = z.object({
+  projectId: z.string().trim().min(1),
+  actualEffortHours: z.number().positive().max(1000000),
+  actualDurationMonths: z.number().positive().max(10000),
+  actualCost: z.number().min(0).max(1000000000),
+  notes: z.string().trim().max(1200).default("")
+});
+
+export const approvalRequestSchema = z.object({
+  projectId: z.string().trim().min(1),
+  comment: z.string().trim().max(1200).default("")
+});
+
+export const approvalReviewSchema = z.object({
+  approvalId: z.string().trim().min(1),
+  status: z.enum(["APPROVED", "REJECTED"]),
+  comment: z.string().trim().max(1200).default("")
+});
+
+export const proposalGenerateSchema = z.object({
+  projectId: z.string().trim().min(1),
+  title: z.string().trim().min(2).max(160).optional()
+});
+
+export const integrationSchema = z.object({
+  provider: z.enum(["JIRA", "SLACK", "GITHUB", "CSV_EXPORT", "ERP", "WEBHOOK"]),
+  status: z.enum(["READY", "CONNECTED", "PAUSED"]).default("READY"),
+  configJson: z.string().trim().max(4000).default("{}")
 });

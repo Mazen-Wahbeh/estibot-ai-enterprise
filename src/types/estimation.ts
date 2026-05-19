@@ -27,6 +27,8 @@ export interface ProjectState {
   clientName?: string;
   status?: string;
   riskLevel?: string;
+  sector?: string;
+  teamSize?: number;
   vatRate?: number;
 }
 

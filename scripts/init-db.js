@@ -69,6 +69,8 @@ const statements = [
     "clientName" TEXT,
     "status" TEXT NOT NULL DEFAULT 'DRAFT',
     "riskLevel" TEXT NOT NULL DEFAULT 'MEDIUM',
+    "sector" TEXT NOT NULL DEFAULT 'GENERAL',
+    "teamSize" INTEGER NOT NULL DEFAULT 1,
     "vatRate" REAL NOT NULL DEFAULT 0,
     "stateJson" TEXT NOT NULL,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -116,6 +118,47 @@ const statements = [
     "updatedAt" DATETIME NOT NULL,
     CONSTRAINT "Subscription_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant" ("id") ON DELETE CASCADE ON UPDATE CASCADE
   )`,
+  `CREATE TABLE IF NOT EXISTS "ActualResult" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "projectId" TEXT NOT NULL,
+    "actualEffortHours" REAL NOT NULL,
+    "actualDurationMonths" REAL NOT NULL,
+    "actualCost" REAL NOT NULL,
+    "notes" TEXT NOT NULL DEFAULT '',
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "ActualResult_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "Project" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+  )`,
+  `CREATE TABLE IF NOT EXISTS "Approval" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "projectId" TEXT NOT NULL,
+    "status" TEXT NOT NULL DEFAULT 'PENDING',
+    "requestedById" TEXT NOT NULL,
+    "reviewedById" TEXT,
+    "comment" TEXT NOT NULL DEFAULT '',
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    CONSTRAINT "Approval_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "Project" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+  )`,
+  `CREATE TABLE IF NOT EXISTS "Proposal" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "projectId" TEXT NOT NULL,
+    "title" TEXT NOT NULL,
+    "contentJson" TEXT NOT NULL,
+    "status" TEXT NOT NULL DEFAULT 'DRAFT',
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    CONSTRAINT "Proposal_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "Project" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+  )`,
+  `CREATE TABLE IF NOT EXISTS "Integration" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "tenantId" TEXT NOT NULL,
+    "provider" TEXT NOT NULL,
+    "status" TEXT NOT NULL DEFAULT 'READY',
+    "configJson" TEXT NOT NULL DEFAULT '{}',
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    CONSTRAINT "Integration_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+  )`,
   `CREATE UNIQUE INDEX IF NOT EXISTS "User_email_key" ON "User"("email")`,
   `CREATE INDEX IF NOT EXISTS "Project_tenantId_idx" ON "Project"("tenantId")`,
   `CREATE INDEX IF NOT EXISTS "Project_ownerId_idx" ON "Project"("ownerId")`,
@@ -124,7 +167,12 @@ const statements = [
   `CREATE INDEX IF NOT EXISTS "UsageLog_tenantId_createdAt_idx" ON "UsageLog"("tenantId", "createdAt")`,
   `CREATE INDEX IF NOT EXISTS "Subscription_tenantId_idx" ON "Subscription"("tenantId")`,
   `CREATE INDEX IF NOT EXISTS "AuditLog_tenantId_createdAt_idx" ON "AuditLog"("tenantId", "createdAt")`,
-  `CREATE INDEX IF NOT EXISTS "AuditLog_userId_createdAt_idx" ON "AuditLog"("userId", "createdAt")`
+  `CREATE INDEX IF NOT EXISTS "AuditLog_userId_createdAt_idx" ON "AuditLog"("userId", "createdAt")`,
+  `CREATE INDEX IF NOT EXISTS "ActualResult_projectId_createdAt_idx" ON "ActualResult"("projectId", "createdAt")`,
+  `CREATE INDEX IF NOT EXISTS "Approval_projectId_status_idx" ON "Approval"("projectId", "status")`,
+  `CREATE INDEX IF NOT EXISTS "Proposal_projectId_createdAt_idx" ON "Proposal"("projectId", "createdAt")`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS "Integration_tenantId_provider_key" ON "Integration"("tenantId", "provider")`,
+  `CREATE INDEX IF NOT EXISTS "Integration_tenantId_idx" ON "Integration"("tenantId")`
 ];
 
 const alterStatements = [
@@ -139,6 +187,8 @@ const alterStatements = [
   `ALTER TABLE "Project" ADD COLUMN "clientName" TEXT`,
   `ALTER TABLE "Project" ADD COLUMN "status" TEXT NOT NULL DEFAULT 'DRAFT'`,
   `ALTER TABLE "Project" ADD COLUMN "riskLevel" TEXT NOT NULL DEFAULT 'MEDIUM'`,
+  `ALTER TABLE "Project" ADD COLUMN "sector" TEXT NOT NULL DEFAULT 'GENERAL'`,
+  `ALTER TABLE "Project" ADD COLUMN "teamSize" INTEGER NOT NULL DEFAULT 1`,
   `ALTER TABLE "Project" ADD COLUMN "vatRate" REAL NOT NULL DEFAULT 0`,
   `ALTER TABLE "Estimation" ADD COLUMN "version" INTEGER NOT NULL DEFAULT 1`,
   `ALTER TABLE "Estimation" ADD COLUMN "method" TEXT NOT NULL DEFAULT 'BOTH'`

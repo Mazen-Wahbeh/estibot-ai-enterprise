@@ -8,12 +8,18 @@ export default withProtectedMethods(["GET"], async (_req, res, user) => {
     return;
   }
 
-  const [users, tenants, projects, estimations, usageLogs] = await Promise.all([
+  const [users, tenants, projects, estimations, usageLogs, highRiskProjects, proposals, actuals, integrations, proTenants, enterpriseTenants] = await Promise.all([
     prisma.user.count(),
     prisma.tenant.count(),
     prisma.project.count(),
     prisma.estimation.count(),
-    prisma.usageLog.count()
+    prisma.usageLog.count(),
+    prisma.project.count({ where: { riskLevel: "HIGH" } }),
+    prisma.proposal.count(),
+    prisma.actualResult.count(),
+    prisma.integration.count({ where: { status: "CONNECTED" } }),
+    prisma.tenant.count({ where: { plan: "PRO" } }),
+    prisma.tenant.count({ where: { plan: "ENTERPRISE" } })
   ]);
 
   const activeSessions = await prisma.usageLog.count({
@@ -31,9 +37,13 @@ export default withProtectedMethods(["GET"], async (_req, res, user) => {
       totalTenants: tenants,
       totalProjects: projects,
       totalEstimations: estimations,
+      highRiskProjects,
+      generatedProposals: proposals,
+      projectsWithActuals: actuals,
+      connectedIntegrations: integrations,
       usageEvents: usageLogs,
       activeSessions,
-      estimatedMonthlyRevenue: 0,
+      estimatedMonthlyRevenue: proTenants * 49 + enterpriseTenants * 299,
       systemHealth: "operational"
     }
   } satisfies ApiResponse<Record<string, number | string>>);

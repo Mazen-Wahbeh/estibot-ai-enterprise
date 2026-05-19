@@ -4,9 +4,9 @@ import { BarChart3, Bot, FileText, Lock, Sparkles } from "lucide-react";
 
 const features = [
   { icon: Bot, title: "Deterministic AI intake", text: "One question per turn with strict phase control and resumable project state." },
-  { icon: BarChart3, title: "FP + UCP analytics", text: "Function Point and Use Case Point calculations with confidence comparison." },
+  { icon: BarChart3, title: "Commercial analytics", text: "Portfolio KPIs, scenario ranges, Monte Carlo confidence, actuals calibration, and sector benchmarks." },
   { icon: Lock, title: "Tenant isolation", text: "Every project, usage event, and estimate is scoped to the authenticated organization." },
-  { icon: FileText, title: "PDF reports", text: "Branded estimation reports with tables, cost breakdowns, and generated timestamps." }
+  { icon: FileText, title: "Proposal-ready outputs", text: "Branded reports, proposal drafts, approval checkpoints, and integration-ready commercial data." }
 ];
 
 export default function LandingPage() {
@@ -62,7 +62,7 @@ export default function LandingPage() {
               <span className="rounded-md bg-brand-50 px-2 py-1 text-xs font-semibold text-brand-700">Multi-tenant</span>
             </div>
             <div className="mt-5 grid gap-3">
-              {["Authentication", "Usage limits", "Tenant database", "Billing-ready plans", "Admin metrics"].map((item) => (
+              {["Authentication", "Usage limits", "Tenant database", "Billing-ready plans", "Admin metrics", "Actuals calibration", "Approval workflow"].map((item) => (
                 <div key={item} className="flex items-center justify-between rounded-md bg-panel px-3 py-2 text-sm">
                   <span>{item}</span>
                   <span className="font-semibold text-accent-600">Ready</span>

@@ -17,7 +17,7 @@ function parseState(raw: string): EstimationState {
 }
 
 function stateForProject(
-  project: Pick<Project, "name" | "description" | "method" | "hourlyRate" | "currency" | "country" | "clientName" | "status" | "riskLevel" | "vatRate" | "stateJson">
+  project: Pick<Project, "name" | "description" | "method" | "hourlyRate" | "currency" | "country" | "clientName" | "status" | "riskLevel" | "sector" | "teamSize" | "vatRate" | "stateJson">
 ): EstimationState {
   const state = parseState(project.stateJson);
   return {
@@ -33,6 +33,8 @@ function stateForProject(
       clientName: state.project.clientName ?? project.clientName ?? undefined,
       status: state.project.status ?? project.status,
       riskLevel: state.project.riskLevel ?? project.riskLevel,
+      sector: state.project.sector ?? project.sector,
+      teamSize: state.project.teamSize ?? project.teamSize,
       vatRate: state.project.vatRate ?? project.vatRate
     }
   };
@@ -58,6 +60,8 @@ export async function ensureDefaultProject(user: SessionUser): Promise<Project> 
       hourlyRate: 50,
       currency: "USD",
       country: "GLOBAL",
+      sector: "GENERAL",
+      teamSize: 1,
       vatRate: 0,
       stateJson: stringify(initialState)
     }
@@ -103,6 +107,8 @@ export async function saveProjectState(user: SessionUser, state: EstimationState
       clientName: clean.project.clientName ?? project.clientName,
       status: clean.project.status ?? project.status,
       riskLevel: clean.project.riskLevel ?? project.riskLevel,
+      sector: clean.project.sector ?? project.sector,
+      teamSize: clean.project.teamSize ?? project.teamSize,
       vatRate: clean.project.vatRate ?? project.vatRate,
       stateJson: stringify(clean)
     }

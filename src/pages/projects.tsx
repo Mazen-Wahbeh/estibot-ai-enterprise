@@ -2,7 +2,7 @@ import Head from "next/head";
 import { FormEvent, useEffect, useState } from "react";
 import { RequireAuth } from "@/components/RequireAuth";
 import { SaasHeader } from "@/components/SaasHeader";
-import { createProject, fetchProjects, type ProjectSummary } from "@/services/apiClient";
+import { createProject, fetchProjects, fetchTemplates, type ProjectSummary, type SectorTemplate } from "@/services/apiClient";
 
 export default function ProjectsPage() {
   const [projects, setProjects] = useState<ProjectSummary[]>([]);
@@ -16,7 +16,10 @@ export default function ProjectsPage() {
   const [country, setCountry] = useState("GLOBAL");
   const [clientName, setClientName] = useState("");
   const [riskLevel, setRiskLevel] = useState<"LOW" | "MEDIUM" | "HIGH">("MEDIUM");
+  const [sector, setSector] = useState("SAAS");
+  const [teamSize, setTeamSize] = useState(3);
   const [vatRate, setVatRate] = useState(0);
+  const [templates, setTemplates] = useState<SectorTemplate[]>([]);
 
   const load = async () => {
     setLoading(true);
@@ -33,12 +36,13 @@ export default function ProjectsPage() {
 
   useEffect(() => {
     void load();
+    void fetchTemplates().then((payload) => setTemplates(payload.templates)).catch(() => setTemplates([]));
   }, []);
 
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     try {
-      await createProject({ name, description, method, hourlyRate, currency, country, clientName: clientName || undefined, riskLevel, vatRate });
+      await createProject({ name, description, method, hourlyRate, currency, country, clientName: clientName || undefined, riskLevel, sector, teamSize, vatRate });
       setName("");
       setDescription("");
       setMethod("BOTH");
@@ -47,6 +51,8 @@ export default function ProjectsPage() {
       setCountry("GLOBAL");
       setClientName("");
       setRiskLevel("MEDIUM");
+      setSector("SAAS");
+      setTeamSize(3);
       setVatRate(0);
       await load();
     } catch (requestError) {
@@ -113,6 +119,22 @@ export default function ProjectsPage() {
                 </label>
               </div>
               <div className="mt-4 grid grid-cols-2 gap-3">
+                <label className="block text-sm font-semibold" htmlFor="sector">
+                  Sector
+                  <select id="sector" value={sector} onChange={(event) => setSector(event.target.value)} className="mt-2 w-full rounded-lg border border-line px-3 py-2 text-sm font-normal outline-none focus:border-accent-500">
+                    {(templates.length > 0 ? templates : [{ id: "SAAS", name: "B2B SaaS product" }]).map((item) => (
+                      <option key={item.id} value={item.id}>
+                        {item.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="block text-sm font-semibold" htmlFor="team-size">
+                  Team size
+                  <input id="team-size" type="number" value={teamSize} onChange={(event) => setTeamSize(Number(event.target.value))} className="mt-2 w-full rounded-lg border border-line px-3 py-2 text-sm font-normal outline-none focus:border-accent-500" min={1} max={500} />
+                </label>
+              </div>
+              <div className="mt-4 grid grid-cols-2 gap-3">
                 <label className="block text-sm font-semibold" htmlFor="risk">
                   Risk
                   <select id="risk" value={riskLevel} onChange={(event) => setRiskLevel(event.target.value as "LOW" | "MEDIUM" | "HIGH")} className="mt-2 w-full rounded-lg border border-line px-3 py-2 text-sm font-normal outline-none focus:border-accent-500">
@@ -146,11 +168,12 @@ export default function ProjectsPage() {
                       </div>
                       <div className="flex flex-wrap gap-2">
                         <span className="rounded-md bg-brand-50 px-2 py-1 text-xs font-semibold text-brand-700">{project.method}</span>
+                        <span className="rounded-md bg-white px-2 py-1 text-xs font-semibold text-accent-600">{project.sector}</span>
                         <span className="rounded-md bg-white px-2 py-1 text-xs font-semibold text-accent-600">{project.currency}</span>
                         <span className="rounded-md bg-white px-2 py-1 text-xs font-semibold text-accent-600">{project.riskLevel}</span>
                       </div>
                     </div>
-                    <p className="mt-3 text-xs text-accent-600">Updated {new Date(project.updatedAt).toLocaleString()}</p>
+                    <p className="mt-3 text-xs text-accent-600">Team {project.teamSize} · Updated {new Date(project.updatedAt).toLocaleString()}</p>
                   </article>
                 ))}
               </div>

@@ -28,6 +28,9 @@ export function SaasHeader() {
           <Link className="font-medium text-accent-600 hover:text-ink" href="/analytics">
             Analytics
           </Link>
+          <Link className="font-medium text-accent-600 hover:text-ink" href="/advanced-analytics">
+            Advanced
+          </Link>
           <Link className="font-medium text-accent-600 hover:text-ink" href="/projects">
             Projects
           </Link>

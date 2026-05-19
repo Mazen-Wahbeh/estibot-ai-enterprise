@@ -71,6 +71,7 @@ export const documentationSections: DocumentationSection[] = [
     points: [
       "Portfolio analytics include estimated cost, effort, duration, high-risk projects, actuals coverage, sector mix, method mix, and monthly trend.",
       "Project analytics include estimate ranges, Monte Carlo P50/P80/P90, FP/UCP method comparison, confidence, and recommendations.",
+      "Advanced analytics add COCOMO II, approximate COSMIC sizing, profitability, EVM, capacity planning, scope creep, volatility, and benchmarking.",
       "Actuals tracking records real effort, duration, and cost to show variance against the estimate.",
       "Sector templates standardize assumptions and compliance concerns across SaaS, government, fintech, healthcare, e-commerce, education, logistics, and ERP/CRM projects."
     ]
@@ -143,6 +144,18 @@ export const launchChecklist = [
 ];
 
 export const releaseNotes: ReleaseNote[] = [
+  {
+    version: "2026.05.19-advanced-analytics",
+    date: "2026-05-19",
+    title: "Advanced estimation analytics",
+    changes: [
+      "Added COCOMO II parametric analysis on top of FP/UCP baselines.",
+      "Added approximate COSMIC sizing with data movement breakdown.",
+      "Added profitability, contingency, VAT, and client price recommendations.",
+      "Added team capacity, EVM snapshot, scope creep, requirements volatility, and sector benchmarking.",
+      "Added Advanced Analytics page and protected API endpoint."
+    ]
+  },
   {
     version: "2026.05.19-enterprise-analytics",
     date: "2026-05-19",

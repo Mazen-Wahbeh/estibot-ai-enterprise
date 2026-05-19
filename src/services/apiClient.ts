@@ -148,6 +148,105 @@ export interface ProjectAnalytics {
   recommendations: string[];
 }
 
+export interface AdvancedProjectAnalytics {
+  projectId: string;
+  name: string;
+  currency: string;
+  sector: string;
+  method: string;
+  baseline: {
+    cost: number;
+    effortHours: number;
+    durationMonths: number;
+    confidenceLevel: string;
+  };
+  cocomo: {
+    estimatedKloc: number;
+    effortPersonMonths: number;
+    effortHours: number;
+    durationMonths: number;
+    cost: number;
+    exponent: number;
+    effortAdjustmentFactor: number;
+    mode: string;
+  };
+  cosmic: {
+    approximateCfp: number;
+    dataMovements: {
+      entries: number;
+      exits: number;
+      reads: number;
+      writes: number;
+    };
+    effortHours: number;
+    durationMonths: number;
+    cost: number;
+    domainFit: string;
+  };
+  profitability: {
+    deliveryCost: number;
+    contingencyReserve: number;
+    recommendedPrice: number;
+    vatAmount: number;
+    totalClientPrice: number;
+    grossMarginPercent: number;
+    breakEvenHourlyRate: number;
+  };
+  risk: {
+    score: number;
+    level: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+    drivers: string[];
+  };
+  capacity: {
+    requiredFte: number;
+    availableTeamSize: number;
+    capacityCoveragePercent: number;
+    deliveryMonthsAtCurrentTeam: number;
+    recommendation: string;
+  };
+  volatility: {
+    versionCount: number;
+    costChangePercent: number;
+    effortChangePercent: number;
+    methodChanges: number;
+    volatilityIndex: number;
+    scopeCreepLevel: "LOW" | "MEDIUM" | "HIGH";
+  };
+  evm: {
+    available: boolean;
+    plannedValue: number;
+    earnedValue: number;
+    actualCost: number;
+    costVariance: number;
+    scheduleVariance: number;
+    cpi: number;
+    spi: number;
+    estimateAtCompletion: number;
+    status: "NO_ACTUALS" | "ON_TRACK" | "WATCH" | "OFF_TRACK";
+  };
+  benchmark: {
+    sectorAverageCost: number;
+    sectorAverageEffortHours: number;
+    portfolioAverageCost: number;
+    costVsSectorPercent: number;
+    effortVsSectorPercent: number;
+    sampleSize: number;
+  };
+  executiveSignals: string[];
+}
+
+export interface AdvancedPortfolioAnalytics {
+  projects: AdvancedProjectAnalytics[];
+  totals: {
+    averageRiskScore: number;
+    criticalProjects: number;
+    averageMarginPercent: number;
+    totalRecommendedPipeline: number;
+    averageCapacityCoveragePercent: number;
+    projectsWithEvm: number;
+  };
+}
+
 export interface ActualResult {
   id: string;
   projectId: string;
@@ -294,6 +393,14 @@ export function fetchPortfolioAnalytics(): Promise<{ analytics: PortfolioAnalyti
 
 export function fetchProjectAnalytics(projectId: string): Promise<{ analytics: ProjectAnalytics }> {
   return getJson<{ analytics: ProjectAnalytics }>(`/api/analytics/project?projectId=${encodeURIComponent(projectId)}`);
+}
+
+export function fetchAdvancedPortfolioAnalytics(): Promise<{ analytics: AdvancedPortfolioAnalytics }> {
+  return getJson<{ analytics: AdvancedPortfolioAnalytics }>("/api/analytics/advanced");
+}
+
+export function fetchAdvancedProjectAnalytics(projectId: string): Promise<{ analytics: AdvancedProjectAnalytics }> {
+  return getJson<{ analytics: AdvancedProjectAnalytics }>(`/api/analytics/advanced?projectId=${encodeURIComponent(projectId)}`);
 }
 
 export function fetchTemplates(): Promise<{ templates: SectorTemplate[] }> {

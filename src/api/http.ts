@@ -2,15 +2,21 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import type { ApiResponse } from "@/types/estimation";
 import { enforceRequestRateLimit } from "@/server/rateLimit";
 import { requireUser, type SessionUser } from "@/server/auth";
+import { applyApiSecurityHeaders, enforceJsonRequest, enforcePayloadSize, enforceSameOrigin } from "@/server/security";
 
 export type ApiHandler = (req: NextApiRequest, res: NextApiResponse) => Promise<void>;
 export type ProtectedApiHandler = (req: NextApiRequest, res: NextApiResponse, user: SessionUser) => Promise<void>;
 
 export function withPost(handler: ApiHandler): ApiHandler {
   return async (req, res) => {
+    applyApiSecurityHeaders(res);
     if (req.method !== "POST") {
       res.setHeader("Allow", "POST");
       res.status(405).json({ ok: false, error: "Method not allowed. Use POST." } satisfies ApiResponse<never>);
+      return;
+    }
+
+    if (!enforcePayloadSize(req, res) || !enforceJsonRequest(req, res) || !enforceSameOrigin(req, res)) {
       return;
     }
 
@@ -27,6 +33,7 @@ export function withPost(handler: ApiHandler): ApiHandler {
 
 export function withGet(handler: ApiHandler): ApiHandler {
   return async (req, res) => {
+    applyApiSecurityHeaders(res);
     if (req.method !== "GET") {
       res.setHeader("Allow", "GET");
       res.status(405).json({ ok: false, error: "Method not allowed. Use GET." } satisfies ApiResponse<never>);
@@ -46,9 +53,14 @@ export function withGet(handler: ApiHandler): ApiHandler {
 
 export function withMethods(methods: string[], handler: ApiHandler): ApiHandler {
   return async (req, res) => {
+    applyApiSecurityHeaders(res);
     if (!req.method || !methods.includes(req.method)) {
       res.setHeader("Allow", methods.join(", "));
       res.status(405).json({ ok: false, error: `Method not allowed. Use ${methods.join(" or ")}.` } satisfies ApiResponse<never>);
+      return;
+    }
+
+    if (!enforcePayloadSize(req, res) || !enforceJsonRequest(req, res) || !enforceSameOrigin(req, res)) {
       return;
     }
 

@@ -4,6 +4,7 @@ import { getAuthConfigurationError, setSessionCookie, verifyPassword, type Sessi
 import { prisma } from "@/server/prisma";
 import { loginSchema } from "@/server/schemas";
 import { audit } from "@/server/audit";
+import { enforcePublicRateLimit } from "@/server/security";
 
 export default withPost(async (req, res) => {
   const configError = getAuthConfigurationError();
@@ -15,6 +16,10 @@ export default withPost(async (req, res) => {
   const parsed = loginSchema.safeParse(req.body);
   if (!parsed.success) {
     badRequest(res, parsed.error.issues[0]?.message ?? "Invalid login request.");
+    return;
+  }
+
+  if (!enforcePublicRateLimit(req, res, "login", parsed.data.email, 10, 15 * 60 * 1000)) {
     return;
   }
 

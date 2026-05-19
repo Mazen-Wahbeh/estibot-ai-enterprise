@@ -103,9 +103,9 @@ export const documentationSections: DocumentationSection[] = [
     summary: "Security controls are implemented around authentication, tenant boundaries, validation, and operational logging.",
     points: [
       "Passwords are hashed with bcrypt and sessions are signed with JWT_SECRET.",
-      "Protected API routes require an authenticated session and request rate limiting.",
+      "Protected API routes require an authenticated session, request rate limiting, same-origin checks, JSON-only unsafe methods, and payload size limits.",
       "Zod validates user inputs before database writes.",
-      "Production deployments must use long random secrets, rotate exposed AI keys, and avoid committing .env files."
+      "Production deployments must use long random secrets, rotate exposed AI keys, avoid committing .env files, and keep security headers enabled."
     ]
   },
   {

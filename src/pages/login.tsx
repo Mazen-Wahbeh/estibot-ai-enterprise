@@ -13,7 +13,8 @@ export default function LoginPage() {
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     await login(email, password);
-    const next = typeof router.query.next === "string" ? router.query.next : "/dashboard";
+    const requestedNext = typeof router.query.next === "string" ? router.query.next : "/dashboard";
+    const next = requestedNext.startsWith("/") && !requestedNext.startsWith("//") ? requestedNext : "/dashboard";
     void router.push(next);
   };
 
@@ -29,11 +30,11 @@ export default function LoginPage() {
           <label className="mt-6 block text-sm font-semibold" htmlFor="email">
             Email
           </label>
-          <input id="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} className="mt-2 w-full rounded-lg border border-line px-3 py-3 text-sm outline-none focus:border-accent-500 focus:ring-2 focus:ring-accent-100" required />
+          <input id="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} className="mt-2 w-full rounded-lg border border-line px-3 py-3 text-sm outline-none focus:border-accent-500 focus:ring-2 focus:ring-accent-100" required autoComplete="email" />
           <label className="mt-4 block text-sm font-semibold" htmlFor="password">
             Password
           </label>
-          <input id="password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} className="mt-2 w-full rounded-lg border border-line px-3 py-3 text-sm outline-none focus:border-accent-500 focus:ring-2 focus:ring-accent-100" required />
+          <input id="password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} className="mt-2 w-full rounded-lg border border-line px-3 py-3 text-sm outline-none focus:border-accent-500 focus:ring-2 focus:ring-accent-100" required autoComplete="current-password" />
           {error ? <p className="mt-4 rounded-md border border-line bg-panel px-3 py-2 text-sm text-accent-700">{error}</p> : null}
           <button type="submit" disabled={loading} className="mt-6 w-full rounded-lg bg-ink px-4 py-3 text-sm font-semibold text-white transition hover:bg-accent-600 disabled:cursor-not-allowed disabled:bg-line">
             {loading ? "Signing in..." : "Login"}

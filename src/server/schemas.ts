@@ -5,7 +5,14 @@ export const emailSchema = z.string().trim().email().max(160).transform((value) 
 
 export const registerSchema = z.object({
   email: emailSchema,
-  password: z.string().min(8).max(120),
+  password: z
+    .string()
+    .min(10, "Password must be at least 10 characters.")
+    .max(120)
+    .regex(/[a-z]/, "Password must include a lowercase letter.")
+    .regex(/[A-Z]/, "Password must include an uppercase letter.")
+    .regex(/[0-9]/, "Password must include a number.")
+    .regex(/[^A-Za-z0-9]/, "Password must include a symbol."),
   organizationName: z.string().trim().min(2).max(80).optional()
 });
 

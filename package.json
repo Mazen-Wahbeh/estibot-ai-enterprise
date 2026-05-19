@@ -10,7 +10,8 @@
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint src tailwind.config.ts --ext .ts,.tsx --max-warnings=0",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "security:smoke": "node scripts/security-smoke.js"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",

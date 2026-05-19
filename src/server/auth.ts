@@ -6,6 +6,8 @@ import { prisma } from "@/server/prisma";
 
 const COOKIE_NAME = "estibot_session";
 const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 7;
+const JWT_ISSUER = "estibot-ai-saas";
+const JWT_AUDIENCE = "estibot-platform";
 
 export interface SessionUser {
   id: string;
@@ -60,14 +62,20 @@ export function setSessionCookie(req: NextApiRequest, res: NextApiResponse, user
       role: user.role
     } satisfies SessionTokenPayload,
     jwtSecret(),
-    { expiresIn: SESSION_MAX_AGE_SECONDS }
+    {
+      expiresIn: SESSION_MAX_AGE_SECONDS,
+      issuer: JWT_ISSUER,
+      audience: JWT_AUDIENCE,
+      subject: user.id,
+      algorithm: "HS256"
+    }
   );
 
   res.setHeader(
     "Set-Cookie",
     serialize(COOKIE_NAME, token, {
       httpOnly: true,
-      sameSite: "lax",
+      sameSite: "strict",
       secure: isSecureRequest(req),
       path: "/",
       maxAge: SESSION_MAX_AGE_SECONDS
@@ -75,13 +83,13 @@ export function setSessionCookie(req: NextApiRequest, res: NextApiResponse, user
   );
 }
 
-export function clearSessionCookie(res: NextApiResponse): void {
+export function clearSessionCookie(req: NextApiRequest, res: NextApiResponse): void {
   res.setHeader(
     "Set-Cookie",
     serialize(COOKIE_NAME, "", {
       httpOnly: true,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      secure: isSecureRequest(req),
       path: "/",
       maxAge: 0
     })
@@ -95,7 +103,11 @@ export async function getSessionUser(req: NextApiRequest): Promise<SessionUser |
   }
 
   try {
-    const payload = jwt.verify(token, jwtSecret()) as SessionTokenPayload;
+    const payload = jwt.verify(token, jwtSecret(), {
+      algorithms: ["HS256"],
+      issuer: JWT_ISSUER,
+      audience: JWT_AUDIENCE
+    }) as SessionTokenPayload;
     const user = await prisma.user.findUnique({
       where: { id: payload.userId },
       include: { tenant: true }

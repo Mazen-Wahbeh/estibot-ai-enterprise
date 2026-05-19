@@ -5,6 +5,7 @@ import { prisma } from "@/server/prisma";
 import { planLimits } from "@/server/plans";
 import { registerSchema } from "@/server/schemas";
 import { audit } from "@/server/audit";
+import { enforcePublicRateLimit } from "@/server/security";
 
 export default withPost(async (req, res) => {
   const configError = getAuthConfigurationError();
@@ -16,6 +17,10 @@ export default withPost(async (req, res) => {
   const parsed = registerSchema.safeParse(req.body);
   if (!parsed.success) {
     badRequest(res, parsed.error.issues[0]?.message ?? "Invalid registration request.");
+    return;
+  }
+
+  if (!enforcePublicRateLimit(req, res, "register", parsed.data.email, 5, 60 * 60 * 1000)) {
     return;
   }
 
